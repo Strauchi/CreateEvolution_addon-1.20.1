@@ -21,6 +21,7 @@ public class ModCreativeModeTabs {
                             .displayItems((params, output) -> {
                                 output.accept(ModItems.HEATED_DIAMOND.get());
                                 output.accept(ModItems.GRAPHITE.get());
+                                output.accept(ModItems.OBSIDIAN_SANDPAPER.get());
                             })
                             .build()
             );

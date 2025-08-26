@@ -15,6 +15,8 @@ public class ModItems {
             () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> HEATED_DIAMOND = ITEMS.register("heated_diamond",
             () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> OBSIDIAN_SANDPAPER = ITEMS.register("obsidian_sandpaper",
+            () -> new Item(new Item.Properties()));
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
