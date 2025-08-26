@@ -9,12 +9,11 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.strauchi.testmod.Item.ModCreateModeTabs;
-import net.strauchi.testmod.Item.ModItem;
+import net.strauchi.testmod.item.ModCreativeModeTabs;
+import net.strauchi.testmod.item.ModItems;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -28,9 +27,9 @@ public class TestMod
     {
         IEventBus modEventBus = context.getModEventBus();
 
-        ModCreateModeTabs.register(modEventBus);
+        ModCreativeModeTabs.register(modEventBus);
 
-        ModItem.register(modEventBus);
+        ModItems.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 
@@ -48,10 +47,7 @@ public class TestMod
 
     // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if(event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
-            event.accept(ModItem.Graphite);
-            event.accept(ModItem.Heated_Diamond);
-        }
+
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
