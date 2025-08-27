@@ -1,0 +1,14 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    { "item": "minecraft:sand" },
+    { "item": "minecraft:sand" },
+    { "item": "minecraft:sand" },
+    { "item": "minecraft:paper" },
+    { "item": "minecraft:paper" },
+    { "item": "minecraft:paper" }
+  ],
+  "results": [
+    { "item": "create:sand_paper", "count": 1 }
+  ]
+}

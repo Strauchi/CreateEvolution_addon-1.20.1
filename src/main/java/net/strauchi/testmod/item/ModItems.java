@@ -1,5 +1,6 @@
 package net.strauchi.testmod.item;
 
+import com.simibubi.create.content.equipment.sandPaper.SandPaperItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -16,7 +17,7 @@ public class ModItems {
     public static final RegistryObject<Item> HEATED_DIAMOND = ITEMS.register("heated_diamond",
             () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> OBSIDIAN_SANDPAPER = ITEMS.register("obsidian_sandpaper",
-            () -> new Item(new Item.Properties()));
+            () -> new SandPaperItem(new Item.Properties().stacksTo(1).durability(4096)));
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

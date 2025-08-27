@@ -1,0 +1,17 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    { "item": "createaddition:diamond_grit" },
+    { "item": "createaddition:diamond_grit" },
+    { "item": "createaddition:diamond_grit" },
+    { "item": "create:sand_paper" },
+    { "item": "create:sand_paper" },
+    { "item": "create:sand_paper" }
+  ],
+  "results": [
+    { "item": "createaddition:diamond_grit_sandpaper", "count": 1 }
+  ],
+  "conditions": [
+    { "type": "forge:mod_loaded", "modid": "createaddition" }
+  ]
+}
