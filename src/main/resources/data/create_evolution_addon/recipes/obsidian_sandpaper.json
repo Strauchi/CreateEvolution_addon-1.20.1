@@ -2,14 +2,12 @@
   "type": "create:compacting",
   "ingredients": [
     { "item": "createaddition:diamond_grit_sandpaper" },
-    { "item": "createaddition:diamond_grit_sandpaper" },
-    { "item": "createaddition:diamond_grit_sandpaper" },
     { "item": "create:powdered_obsidian" },
     { "item": "create:powdered_obsidian" },
     { "item": "create:powdered_obsidian" }
   ],
   "results": [
-    { "item": "testmod:obsidian_sandpaper", "count": 1 }
+    { "item": "create_evolution_addon:obsidian_sandpaper", "count": 1 }
   ],
   "conditions": [
     { "type": "forge:mod_loaded", "modid": "createaddition" }

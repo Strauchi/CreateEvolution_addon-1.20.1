@@ -1,0 +1,16 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    { "item": "minecraft:coal_block" },
+    { "item": "minecraft:coal_block" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    {"fluid": "minecraft:lava", "amount": 500}
+  ],
+  "results": [
+    { "item": "create_evolution_addon:graphite", "count": 1 }
+  ],
+  "heatrequirement": "heated"
+
+
+}

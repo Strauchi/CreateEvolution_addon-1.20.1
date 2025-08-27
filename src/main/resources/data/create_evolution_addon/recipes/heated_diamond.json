@@ -1,0 +1,16 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    { "item": "create_evolution_addon:graphite" },
+    { "item": "create_evolution_addon:graphite" },
+    { "item": "create_evolution_addon:graphite" },
+    { "item": "create_evolution_addon:graphite" },
+    {"fluid": "minecraft:lava", "amount": 500}
+  ],
+  "results": [
+    { "item": "create_evolution_addon:heated_diamond", "count": 1 }
+  ],
+  "heatrequirement": "heated"
+
+
+}

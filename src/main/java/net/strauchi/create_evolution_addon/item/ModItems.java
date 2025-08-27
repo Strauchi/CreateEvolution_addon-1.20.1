@@ -1,4 +1,4 @@
-package net.strauchi.testmod.item;
+package net.strauchi.create_evolution_addon.item;
 
 import com.simibubi.create.content.equipment.sandPaper.SandPaperItem;
 import net.minecraft.world.item.Item;
@@ -6,11 +6,11 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-import net.strauchi.testmod.TestMod;
+import net.strauchi.create_evolution_addon.CreateEvolutionAddon;
 
 public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
-            DeferredRegister.create(ForgeRegistries.ITEMS, TestMod.MOD_ID);
+            DeferredRegister.create(ForgeRegistries.ITEMS, CreateEvolutionAddon.MOD_ID);
 
     public static final RegistryObject<Item> GRAPHITE = ITEMS.register("graphite",
             () -> new Item(new Item.Properties()));

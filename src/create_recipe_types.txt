@@ -1,0 +1,76 @@
+| Machine / Action      | Recipe Type Key              | Notes                               |
+| --------------------- | ---------------------------- | ----------------------------------- |
+| Mechanical Press      | `create:pressing`            | Flattening/compacting into plates   |
+| Mechanical Mixer      | `create:mixing`              | With/without heat                   |
+| Mechanical Crafter    | `create:mechanical_crafting` | Automated shaped crafting           |
+| Crushing Wheels       | `create:crushing`            | Multi-output crushing               |
+| Millstone             | `create:milling`             | Simple crushing                     |
+| Mechanical Saw        | `create:cutting`             | Block cutting                       |
+| Spout Filling         | `create:filling`             | Add fluid into item                 |
+| Emptying (Item Drain) | `create:emptying`            | Extract fluid                       |
+| Washing (Fan+Water)   | `create:splashing`           | e.g., gravel → flint                |
+| Haunting (Fan+Soul)   | `create:haunting`            | Corrupting items                    |
+| Compacting Basin      | `create:compacting`          | Item + fluid → item (heat optional) |
+| Sequenced Assembly    | `create:sequenced_assembly`  | Multi-step process                  |
+| Deploying             | `create:deploying`           | Apply part to base                  |
+| Fan Smoking           | `create:smoking`             | Food smoking with fan               |
+| Fan Blasting          | `create:blasting`            | Lava-powered smelting               |
+
+//////////////////////////////////////////////
+// Custom mixing recipe with fluid and heat //
+
+{
+  "type": "create:mixing",
+  "ingredients": [
+    { "item": "minecraft:quartz" },
+    { "fluid": "minecraft:lava", "amount": 500 },
+    { "fluidTag": "forge:water", "amount": 500 }
+  ],
+  "results": [
+    { "fluid": "create:some_custom_fluid", "amount": 1000 }
+  ],
+  "heatRequirement": "heated"
+}
+
+/////////////////////////////////////////
+// Custom Compacting recipe with fluid //
+
+{
+  "type": "create:compacting",
+  "ingredients": [
+    { "item": "minecraft:iron_ingot" },
+    { "fluid": "minecraft:water", "amount": 250 },
+    { "fluid": "minecraft:lava", "amount": 250 }
+  ],
+  "results": [
+    { "item": "minecraft:obsidian" }
+  ]
+}
+
+////////////////////////////////////
+// Custom Spout recipe with fluid //
+
+{
+  "type": "create:filling",
+  "ingredients": [
+    { "item": "minecraft:cake" },
+    { "fluid": "create:chocolate", "amount": 250 }
+  ],
+  "results": [
+    { "item": "create:chocolate_cake" }
+  ]
+}
+
+////////////////////////////////////
+// Custom drain recipe with fluid //
+
+{
+  "type": "create:emptying",
+  "ingredients": [
+    { "item": "minecraft:potion", "nbt": "{Potion:\"minecraft:water\"}" }
+  ],
+  "results": [
+    { "item": "minecraft:glass_bottle" },
+    { "fluid": "minecraft:water", "amount": 250 }
+  ]
+}

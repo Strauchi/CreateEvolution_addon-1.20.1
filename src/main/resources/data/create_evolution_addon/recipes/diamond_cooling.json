@@ -1,0 +1,10 @@
+{
+  "type": "create:filling",
+  "ingredients": [
+    { "item": "create_evolution_addon:heated_diamond" },
+    { "fluid": "minecraft:water", "amount": 250 }
+  ],
+  "results": [
+    { "item": "minecraft:diamond" }
+  ]
+}

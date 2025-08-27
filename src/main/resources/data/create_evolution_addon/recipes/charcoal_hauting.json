@@ -1,0 +1,10 @@
+{
+  "type": "create:haunting",
+  "ingredients": [
+    { "item": "minecraft:charcoal" }
+
+  ],
+  "results": [
+    { "item": "minecraft:coal" }
+  ]
+}
