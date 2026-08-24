@@ -8,6 +8,7 @@ on:
     paths:
       - 'afterfall-build/v060_patch_gz_*.b64'
       - 'afterfall-build/v060_common_events_*.b64'
+      - 'afterfall-build/v060_compilefix.py'
       - 'afterfall-build/v060_trigger_*'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
@@ -100,6 +101,7 @@ jobs:
               find Afterfall -name '*.rej' -print
               exit 1
             fi
+            python3 afterfall-build/v060_compilefix.py
             grep '^mod_version=' Afterfall/gradle.properties
 
             cd Afterfall
