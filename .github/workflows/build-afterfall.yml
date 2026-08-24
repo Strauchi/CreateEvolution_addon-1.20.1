@@ -5,7 +5,7 @@ on:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/v020_patch_*.txt'
+      - 'afterfall-build/v030_patch_gz_*.b64'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -45,32 +45,52 @@ jobs:
         run: |
           cat afterfall-build/v020_patch_*.txt > afterfall-v020.patch
           patch -p1 < afterfall-v020.patch
+
+      - name: Apply Afterfall 0.3 bunker-systems patch
+        shell: bash
+        run: |
+          cat afterfall-build/v030_patch_gz_*.b64 > afterfall-v030.patch.gz.b64
+          base64 --decode afterfall-v030.patch.gz.b64 > afterfall-v030.patch.gz
+          gzip -dc afterfall-v030.patch.gz > afterfall-v030.patch
+          patch -p0 < afterfall-v030.patch
           grep '^mod_version=' Afterfall/gradle.properties
 
       - name: Build Afterfall
-        working-directory: Afterfall
-        run: gradle build --stacktrace
-
-      - name: Publish compiled jar to build branch
+        id: build
         shell: bash
         run: |
           mkdir -p afterfall-build/output
-          JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
-          rm -f afterfall-build/output/Afterfall-*.jar afterfall-build/output/jar_chunk_*.b64
-          cp "$JAR" afterfall-build/output/Afterfall-0.2.0-NeoForge-1.21.1.jar
-          base64 -w 0 afterfall-build/output/Afterfall-0.2.0-NeoForge-1.21.1.jar > afterfall-build/output/afterfall.jar.b64
-          split -b 8000 -d -a 2 --additional-suffix=.b64 afterfall-build/output/afterfall.jar.b64 afterfall-build/output/jar_chunk_
-          rm afterfall-build/output/afterfall.jar.b64
+          set +e
+          (cd Afterfall && gradle build --stacktrace) 2>&1 | tee afterfall-build/output/build-v030.log
+          status=${PIPESTATUS[0]}
+          echo "$status" > afterfall-build/output/build-v030-status.txt
+          exit $status
+
+      - name: Publish build log and compiled jar
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p afterfall-build/output
+          if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
+            JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
+            rm -f afterfall-build/output/Afterfall-*.jar afterfall-build/output/jar_chunk_*.b64
+            cp "$JAR" afterfall-build/output/Afterfall-0.3.0-NeoForge-1.21.1.jar
+            base64 -w 0 afterfall-build/output/Afterfall-0.3.0-NeoForge-1.21.1.jar > afterfall-build/output/afterfall.jar.b64
+            split -b 8000 -d -a 2 --additional-suffix=.b64 afterfall-build/output/afterfall.jar.b64 afterfall-build/output/jar_chunk_
+            rm afterfall-build/output/afterfall.jar.b64
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
-          git diff --cached --quiet && exit 0
-          git commit -m 'Publish Afterfall 0.2.0 room-system jar'
-          git push origin HEAD:afterfall-build
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish Afterfall 0.3.0 bunker systems build'
+            git push origin HEAD:afterfall-build
+          fi
 
       - name: Upload compiled mod
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: Afterfall-0.2.0-NeoForge-1.21.1
+          name: Afterfall-0.3.0-NeoForge-1.21.1
           path: Afterfall/build/libs/*.jar
           if-no-files-found: error
