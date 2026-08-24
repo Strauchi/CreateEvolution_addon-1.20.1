@@ -111,11 +111,24 @@ jobs:
           echo "$status" > afterfall-build/output/build-v060-status.txt
           exit $status
 
-      - name: Publish build log and compiled jar
+      - name: Publish build log, jar and source snapshot
         if: always()
         shell: bash
         run: |
-          mkdir -p afterfall-build/output
+          mkdir -p afterfall-build/output afterfall-build/snapshot-v060
+          if [ -d Afterfall/src/main ]; then
+            mkdir -p afterfall-build/snapshot-v060/block afterfall-build/snapshot-v060/blockentity afterfall-build/snapshot-v060/content afterfall-build/snapshot-v060/client afterfall-build/snapshot-v060/menu afterfall-build/snapshot-v060/event
+            cp Afterfall/src/main/java/dev/afterfall/block/AfterfallDoorBlock.java afterfall-build/snapshot-v060/block/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/blockentity/AirlockLogic.java afterfall-build/snapshot-v060/blockentity/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/blockentity/AirlockControllerBlockEntity.java afterfall-build/snapshot-v060/blockentity/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java afterfall-build/snapshot-v060/content/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/content/ModItems.java afterfall-build/snapshot-v060/content/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/content/ModBlockEntities.java afterfall-build/snapshot-v060/content/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/client/ClientModEvents.java afterfall-build/snapshot-v060/client/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/client/MachineScreen.java afterfall-build/snapshot-v060/client/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/menu/MachineMenu.java afterfall-build/snapshot-v060/menu/ 2>/dev/null || true
+            cp Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java afterfall-build/snapshot-v060/event/ 2>/dev/null || true
+          fi
           if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
             JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
             rm -f afterfall-build/output/Afterfall-*.jar afterfall-build/output/jar_chunk_*.b64
@@ -126,9 +139,9 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add afterfall-build/output/
+          git add afterfall-build/output/ afterfall-build/snapshot-v060/
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish Afterfall 0.6.0 bunker doors and machine GUI build'
+            git commit -m 'Publish Afterfall 0.6.0 build and source snapshot'
             git push origin HEAD:afterfall-build
           fi
 
