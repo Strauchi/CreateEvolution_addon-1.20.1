@@ -32,44 +32,36 @@ jobs:
         with:
           gradle-version: '9.2.1'
 
-      - name: Reconstruct Afterfall 0.1 source
-        shell: bash
-        run: |
-          cat afterfall-build/chunk_*.b64 > afterfall-source.b64
-          base64 --decode afterfall-source.b64 > afterfall-source.zip
-          unzip -t afterfall-source.zip
-          unzip -q afterfall-source.zip
-
-      - name: Apply Afterfall 0.2 room-system patch
-        shell: bash
-        run: |
-          cat afterfall-build/v020_patch_*.txt > afterfall-v020.patch
-          patch -p1 < afterfall-v020.patch
-
-      - name: Apply Afterfall 0.3 bunker-systems patch
-        shell: bash
-        run: |
-          cat afterfall-build/v030_patch_gz_*.b64 > afterfall-v030.patch.gz.b64
-          base64 --decode afterfall-v030.patch.gz.b64 > afterfall-v030.patch.gz
-          gzip -dc afterfall-v030.patch.gz > afterfall-v030.patch
-          patch -p0 < afterfall-v030.patch
-
-      - name: Apply Afterfall 0.3.1 airlock feedback and atmosphere-mixing patch
-        shell: bash
-        run: |
-          cat afterfall-build/v031_patch_gz_*.b64 > afterfall-v031.patch.gz.b64
-          base64 --decode afterfall-v031.patch.gz.b64 > afterfall-v031.patch.gz
-          gzip -dc afterfall-v031.patch.gz > afterfall-v031.patch
-          patch -p1 < afterfall-v031.patch
-          grep '^mod_version=' Afterfall/gradle.properties
-
-      - name: Build Afterfall
+      - name: Reconstruct, patch and build Afterfall 0.3.1
         id: build
         shell: bash
         run: |
           mkdir -p afterfall-build/output
           set +e
-          (cd Afterfall && gradle build --stacktrace) 2>&1 | tee afterfall-build/output/build-v031.log
+          {
+            set -e
+            cat afterfall-build/chunk_*.b64 > afterfall-source.b64
+            base64 --decode afterfall-source.b64 > afterfall-source.zip
+            unzip -t afterfall-source.zip
+            unzip -q afterfall-source.zip
+
+            cat afterfall-build/v020_patch_*.txt > afterfall-v020.patch
+            patch -p1 < afterfall-v020.patch
+
+            cat afterfall-build/v030_patch_gz_*.b64 > afterfall-v030.patch.gz.b64
+            base64 --decode afterfall-v030.patch.gz.b64 > afterfall-v030.patch.gz
+            gzip -dc afterfall-v030.patch.gz > afterfall-v030.patch
+            patch -p0 < afterfall-v030.patch
+
+            cat afterfall-build/v031_patch_gz_*.b64 > afterfall-v031.patch.gz.b64
+            base64 --decode afterfall-v031.patch.gz.b64 > afterfall-v031.patch.gz
+            gzip -dc afterfall-v031.patch.gz > afterfall-v031.patch
+            patch -p1 < afterfall-v031.patch
+            grep '^mod_version=' Afterfall/gradle.properties
+
+            cd Afterfall
+            gradle build --stacktrace
+          } 2>&1 | tee afterfall-build/output/build-v031.log
           status=${PIPESTATUS[0]}
           echo "$status" > afterfall-build/output/build-v031-status.txt
           exit $status
