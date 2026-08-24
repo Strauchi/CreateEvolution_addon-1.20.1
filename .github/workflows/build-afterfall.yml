@@ -8,6 +8,7 @@ on:
     paths:
       - 'afterfall-build/v052_patch_gz_*.b64'
       - 'afterfall-build/apply-v052.py'
+      - 'afterfall-build/apply-v052b.py'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -75,7 +76,7 @@ jobs:
             gzip -dc afterfall-v051.patch.gz > afterfall-v051.patch
             patch -p0 < afterfall-v051.patch
 
-            python3 afterfall-build/apply-v052.py
+            python3 afterfall-build/apply-v052b.py
             grep '^mod_version=' Afterfall/gradle.properties
 
             cd Afterfall
