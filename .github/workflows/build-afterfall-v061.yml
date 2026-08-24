@@ -1,0 +1,139 @@
+name: Build Afterfall 0.6.1 Blast Door
+
+on:
+  push:
+    branches:
+      - afterfall-build
+    paths:
+      - 'afterfall-build/v061m_*.b64'
+      - '.github/workflows/build-afterfall-v061.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+        with:
+          ref: afterfall-build
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle 9.2.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
+
+      - name: Reconstruct and build Afterfall 0.6.1
+        id: build
+        shell: bash
+        run: |
+          mkdir -p afterfall-build/output
+          set +e
+          {
+            set -e
+            cat afterfall-build/chunk_*.b64 > afterfall-source.b64
+            base64 --decode afterfall-source.b64 > afterfall-source.zip
+            unzip -t afterfall-source.zip
+            unzip -q afterfall-source.zip
+
+            cat afterfall-build/v020_patch_*.txt > afterfall-v020.patch
+            patch -p1 < afterfall-v020.patch
+
+            cat afterfall-build/v030_patch_gz_*.b64 > afterfall-v030.patch.gz.b64
+            base64 --decode afterfall-v030.patch.gz.b64 > afterfall-v030.patch.gz
+            gzip -dc afterfall-v030.patch.gz > afterfall-v030.patch
+            patch -p0 < afterfall-v030.patch
+
+            cat afterfall-build/v031fix_*.b64 > afterfall-v031.patch.gz.b64
+            base64 --decode afterfall-v031.patch.gz.b64 > afterfall-v031.patch.gz
+            gzip -dc afterfall-v031.patch.gz > afterfall-v031.patch
+            patch -p1 < afterfall-v031.patch
+
+            cat afterfall-build/v040_patch_gz_*.b64 > afterfall-v040.patch.gz.b64
+            base64 --decode afterfall-v040.patch.gz.b64 > afterfall-v040.patch.gz
+            gzip -dc afterfall-v040.patch.gz > afterfall-v040.patch
+            patch -p0 < afterfall-v040.patch
+
+            cat afterfall-build/v050_patch_*.b64 > afterfall-v050.patch.gz.b64
+            base64 --decode afterfall-v050.patch.gz.b64 > afterfall-v050.patch.gz
+            gzip -dc afterfall-v050.patch.gz > afterfall-v050.patch
+            patch -p0 < afterfall-v050.patch
+
+            cat afterfall-build/v051_patch_gz_*.b64 > afterfall-v051.patch.gz.b64
+            base64 --decode afterfall-v051.patch.gz.b64 > afterfall-v051.patch.gz
+            gzip -dc afterfall-v051.patch.gz > afterfall-v051.patch
+            patch -p0 < afterfall-v051.patch
+
+            python3 afterfall-build/apply-v052b.py
+
+            cat afterfall-build/v060_patch_gz_*.b64 > afterfall-v060.patch.gz.b64
+            base64 --decode afterfall-v060.patch.gz.b64 > afterfall-v060.patch.gz
+            gzip -dc afterfall-v060.patch.gz > afterfall-v060.patch
+            set +e
+            patch -p1 < afterfall-v060.patch
+            v060_patch_status=$?
+            set -e
+            if [ "$v060_patch_status" -ne 0 ]; then
+              mapfile -t rejects < <(find Afterfall -name '*.rej' -print)
+              if [ "${#rejects[@]}" -ne 1 ] || [ "${rejects[0]}" != "Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java.rej" ]; then
+                echo "Unexpected 0.6 patch rejects: ${rejects[*]}"
+                exit 1
+              fi
+            fi
+            cat afterfall-build/v060_common_events_*.b64 > afterfall-v060-common-events.b64
+            base64 --decode afterfall-v060-common-events.b64 > Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+            rm -f Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java.rej
+            if find Afterfall -name '*.rej' -print -quit | grep -q .; then
+              echo 'Unexpected reject remains after 0.6 restore.'
+              find Afterfall -name '*.rej' -print
+              exit 1
+            fi
+            python3 afterfall-build/v060_compilefix.py
+
+            cat afterfall-build/v061m_*.b64 > afterfall-v061-script.gz.b64
+            base64 --decode afterfall-v061-script.gz.b64 > afterfall-v061-script.gz
+            gzip -dc afterfall-v061-script.gz > afterfall-v061.py
+            python3 afterfall-v061.py
+
+            grep '^mod_version=' Afterfall/gradle.properties
+            cd Afterfall
+            gradle build --stacktrace
+          } 2>&1 | tee afterfall-build/output/build-v061.log
+          status=${PIPESTATUS[0]}
+          echo "$status" > afterfall-build/output/build-v061-status.txt
+          exit $status
+
+      - name: Publish build output
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p afterfall-build/output
+          if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
+            JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
+            rm -f afterfall-build/output/Afterfall-0.6.1-NeoForge-1.21.1.jar
+            cp "$JAR" afterfall-build/output/Afterfall-0.6.1-NeoForge-1.21.1.jar
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add afterfall-build/output/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish Afterfall 0.6.1 animated 3x2 blast door build'
+            git push origin HEAD:afterfall-build
+          fi
+
+      - name: Upload compiled mod
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Afterfall-0.6.1-NeoForge-1.21.1
+          path: Afterfall/build/libs/*.jar
+          if-no-files-found: error
