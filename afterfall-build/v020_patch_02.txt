@@ -1,0 +1,122 @@
+weenClosed(
++                center.offset(-HOTSPOT_RADIUS, -4, -HOTSPOT_RADIUS),
++                center.offset(HOTSPOT_RADIUS, 4, HOTSPOT_RADIUS))) {
+             if (!level.getBlockState(pos).is(ModBlocks.RADIOACTIVE_WASTE_BLOCK.get())) continue;
+             double dx = pos.getX() - center.getX();
+             double dy = pos.getY() - center.getY();
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java diffnew/Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java	2026-08-24 14:12:33.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java	2026-08-24 14:46:37.670349205 +0000
+@@ -1,14 +1,21 @@
+ package dev.afterfall.radiation;
+ 
++import dev.afterfall.room.RoomEnvironment;
++
+ public record RadiationReading(
+-        double backgroundRatePerSecond,
++        double externalGammaRatePerSecond,
+         double hotspotRatePerSecond,
++        double airborneRatePerSecond,
+         double contaminationRatePerSecond,
+         double shieldingFactor,
+         boolean skyExposed,
+-        boolean wasteland
++        boolean wasteland,
++        RoomEnvironment room
+ ) {
+-    public double totalRatePerSecond() { return backgroundRatePerSecond + hotspotRatePerSecond + contaminationRatePerSecond; }
++    public double totalRatePerSecond() {
++        return externalGammaRatePerSecond + hotspotRatePerSecond + airborneRatePerSecond + contaminationRatePerSecond;
++    }
++
+     public double totalRatePerHour() { return totalRatePerSecond() * 3600.0D; }
+     public double shieldingPercent() { return (1.0D - shieldingFactor) * 100.0D; }
+ }
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java	1970-01-01 00:00:00.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java	2026-08-24 14:46:02.445408262 +0000
+@@ -0,0 +1,63 @@
++package dev.afterfall.room;
++
++import net.minecraft.util.Mth;
++
++public final class RoomAtmosphere {
++    private int volume;
++    private double dustPercent;
++    private double airborneRadiationPerSecond;
++    private long lastUpdateGameTime;
++
++    public RoomAtmosphere(int volume, double dustPercent, double airborneRadiationPerSecond, long lastUpdateGameTime) {
++        this.volume = Math.max(1, volume);
++        this.dustPercent = Mth.clamp(dustPercent, 0.0D, 100.0D);
++        this.airborneRadiationPerSecond = Math.max(0.0D, airborneRadiationPerSecond);
++        this.lastUpdateGameTime = lastUpdateGameTime;
++    }
++
++    public int volume() { return volume; }
++    public double dustPercent() { return dustPercent; }
++    public double airborneRadiationPerSecond() { return airborneRadiationPerSecond; }
++    public long lastUpdateGameTime() { return lastUpdateGameTime; }
++
++    public void updateVolume(int newVolume, double outsideDust, double outsideAirborneRadiation) {
++        newVolume = Math.max(1, newVolume);
++        if (newVolume > volume) {
++            double oldWeight = (double) volume / newVolume;
++            double newWeight = 1.0D - oldWeight;
++            dustPercent = dustPercent * oldWeight + outsideDust * newWeight;
++            airborneRadiationPerSecond = airborneRadiationPerSecond * oldWeight + outsideAirborneRadiation * newWeight;
++        }
++        volume = newVolume;
++    }
++
++    public void exposeToOutside(double outsideDust, double outsideAirborneRadiation, double exchangeFraction) {
++        double mix = Mth.clamp(exchangeFraction, 0.0D, 1.0D);
++        dustPercent = Mth.lerp(mix, dustPercent, outsideDust);
++        airborneRadiationPerSecond = Mth.lerp(mix, airborneRadiationPerSecond, outsideAirborneRadiation);
++    }
++
++    public void tickPassive(long gameTime) {
++        long elapsedTicks = Math.max(0L, gameTime - lastUpdateGameTime);
++        double seconds = Math.min(30.0D, elapsedTicks / 20.0D);
++        if (seconds > 0.0D) {
++            // Heavy fallout slowly settles out of the air even without machinery.
++            dustPercent = Math.max(4.0D, dustPercent - 0.0125D * seconds);
++            airborneRadiationPerSecond = Math.max(0.0D, airborneRadiationPerSecond - 0.0000025D * seconds);
++        }
++        lastUpdateGameTime = gameTime;
++    }
++
++    public void filterDust(double amount) {
++        dustPercent = Math.max(0.0D, dustPercent - Math.max(0.0D, amount));
++    }
++
++    public void filterRadiation(double amountPerSecond) {
++        airborneRadiationPerSecond = Math.max(0.0D, airborneRadiationPerSecond - Math.max(0.0D, amountPerSecond));
++    }
++
++    public double airQualityPercent() {
++        double radiationPenalty = Math.min(100.0D, airborneRadiationPerSecond * 3600.0D * 0.5D);
++        return Mth.clamp(100.0D - dustPercent * 0.8D - radiationPenalty * 0.2D, 0.0D, 100.0D);
++    }
++}
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java	1970-01-01 00:00:00.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java	2026-08-24 14:46:02.489408260 +0000
+@@ -0,0 +1,73 @@
++package dev.afterfall.room;
++
++import net.minecraft.core.HolderLookup;
++import net.minecraft.nbt.CompoundTag;
++import net.minecraft.nbt.ListTag;
++import net.minecraft.nbt.Tag;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.world.level.saveddata.SavedData;
++
++import java.util.HashMap;
++import java.util.Map;
++
++public final class RoomAtmosphereSavedData extends SavedData {
++    private static final String DATA_NAME = "afterfall_room_atmospheres";
++    private final Map<Long, RoomAtmosphere> rooms = new HashMap<>();
++
++    public static RoomAtmospher
