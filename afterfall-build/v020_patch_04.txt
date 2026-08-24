@@ -1,0 +1,150 @@
+ivate RoomEnvironmentManager() {}
++}
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/room/RoomScanResult.java diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomScanResult.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/room/RoomScanResult.java	1970-01-01 00:00:00.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomScanResult.java	2026-08-24 14:45:24.029133599 +0000
+@@ -0,0 +1,20 @@
++package dev.afterfall.room;
++
++import net.minecraft.core.BlockPos;
++
++public record RoomScanResult(
++        boolean sealed,
++        int volume,
++        BlockPos anchor,
++        double shieldingFactor,
++        int boundaryFaces,
++        boolean exceededScanLimit
++) {
++    public static RoomScanResult open(int scannedVolume, BlockPos anchor, boolean exceededScanLimit) {
++        return new RoomScanResult(false, scannedVolume, anchor, 1.0D, 0, exceededScanLimit);
++    }
++
++    public double shieldingPercent() {
++        return (1.0D - shieldingFactor) * 100.0D;
++    }
++}
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java	1970-01-01 00:00:00.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java	2026-08-24 14:45:57.342569340 +0000
+@@ -0,0 +1,173 @@
++package dev.afterfall.room;
++
++import dev.afterfall.content.ModBlocks;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Direction;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.util.Mth;
++import net.minecraft.world.level.block.DoorBlock;
++import net.minecraft.world.level.block.FenceGateBlock;
++import net.minecraft.world.level.block.TrapDoorBlock;
++import net.minecraft.world.level.block.Blocks;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.block.state.properties.BlockStateProperties;
++
++import java.util.ArrayDeque;
++import java.util.HashSet;
++import java.util.Set;
++
++/**
++ * Flood-fills connected air space around a player. A room is sealed only when
++ * every reachable air cell is bounded by an air-tight block before the scan limit
++ * or scan radius is reached.
++ *
++ * This deliberately treats stairs/slabs/fences/panes as leaky. Full blocks,
++ * closed doors, closed trapdoors and closed fence gates seal air.
++ */
++public final class RoomScanner {
++    public static final int MAX_ROOM_VOLUME = 8192;
++    private static final int MAX_HORIZONTAL_DISTANCE = 32;
++    private static final int MAX_VERTICAL_DISTANCE = 20;
++    private static final int WALL_THICKNESS_SCAN = 4;
++
++    public static RoomScanResult scan(ServerLevel level, BlockPos start) {
++        BlockPos origin = findAirCell(level, start);
++        if (origin == null) {
++            return RoomScanResult.open(0, start.immutable(), false);
++        }
++
++        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
++        Set<Long> visited = new HashSet<>();
++        queue.add(origin);
++        visited.add(origin.asLong());
++
++        BlockPos anchor = origin;
++        boolean open = false;
++        boolean exceeded = false;
++
++        while (!queue.isEmpty()) {
++            BlockPos current = queue.removeFirst();
++            if (compare(current, anchor) < 0) anchor = current;
++
++            if (level.canSeeSky(current)) {
++                open = true;
++                break;
++            }
++
++            if (visited.size() >= MAX_ROOM_VOLUME) {
++                open = true;
++                exceeded = true;
++                break;
++            }
++
++            for (Direction direction : Direction.values()) {
++                BlockPos next = current.relative(direction);
++                if (outsideSearchBounds(origin, next)) {
++                    open = true;
++                    exceeded = true;
++                    break;
++                }
++                if (!level.hasChunkAt(next)) {
++                    open = true;
++                    exceeded = true;
++                    break;
++                }
++                if (!airCanPass(level, next)) continue;
++
++                long key = next.asLong();
++                if (visited.add(key)) queue.addLast(next);
++            }
++
++            if (open) break;
++        }
++
++        if (open) {
++            return RoomScanResult.open(visited.size(), anchor.immutable(), exceeded);
++        }
++
++        // The room is closed. Evaluate every interior->wall face, and include up
++        // to four consecutive material layers so wall thickness matters too.
++        double transmissionSum = 0.0D;
++        int boundaryFaces = 0;
++
++        for (long packed : visited) {
++            BlockPos interior = BlockPos.of(packed);
++            for (Direction direction : Direction.values()) {
++                BlockPos wall = interior.relative(direction);
++                if (airCanPass(level, wall)) continue;
++                boundaryFaces++;
++                transmissionSum += wallTransmission(level, wall, direction);
++            }
++        }
++
++        if (boundaryFaces == 0) {
++            return RoomScanResult.open(visited.size(), anchor.immutable(), false);
++        }
++
++        double shieldingFactor = Mth.clamp(transmissionSum / boundaryFaces, 0.01D, 1.0D);
++        return new RoomScanResult(true, visited.size(), anchor.immutable(), shieldingFactor, boundaryFaces, false);
++    }
++
++    private static BlockPos findAirCell(ServerLevel level, BlockPos start) {
++        if (airCanPass(level, start)) return start.immutable();
++        if (airCanPass(level, start.above())) return start.above().immutable();
++        return null;
++    }
++
++    private static boolean outsideSearchBounds(BlockPos origin, BlockPos pos) {
++        return Math.abs(pos.getX() - origin.getX()) > MAX_HORIZONTAL_DISTANCE
++                || Math.abs(pos.getZ() - origin.getZ()) > MAX_HORIZONTAL_DISTANCE
++                || Math.abs(pos.getY() - origin.getY()) > MAX_VERTICAL_DIST
