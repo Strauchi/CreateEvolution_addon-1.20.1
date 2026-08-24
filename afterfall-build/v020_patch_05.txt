@@ -1,0 +1,54 @@
+ANCE;
++    }
++
++    public static boolean airCanPass(ServerLevel level, BlockPos pos) {
++        BlockState state = level.getBlockState(pos);
++        if (state.isAir()) return true;
++        if (!state.getFluidState().isEmpty()) return false;
++
++        if (state.getBlock() instanceof DoorBlock) {
++            return state.hasProperty(BlockStateProperties.OPEN) && state.getValue(BlockStateProperties.OPEN);
++        }
++        if (state.getBlock() instanceof TrapDoorBlock) {
++            return state.hasProperty(BlockStateProperties.OPEN) && state.getValue(BlockStateProperties.OPEN);
++        }
++        if (state.getBlock() instanceof FenceGateBlock) {
++            return state.hasProperty(BlockStateProperties.OPEN) && state.getValue(BlockStateProperties.OPEN);
++        }
++
++        // Partial blocks have gaps and therefore do not form an airtight bunker.
++        return !state.isCollisionShapeFullBlock(level, pos);
++    }
++
++    private static double wallTransmission(ServerLevel level, BlockPos firstWall, Direction outward) {
++        double factor = 1.0D;
++        BlockPos pos = firstWall;
++        for (int i = 0; i < WALL_THICKNESS_SCAN; i++) {
++            if (airCanPass(level, pos)) break;
++            factor *= materialTransmission(level.getBlockState(pos));
++            if (factor <= 0.01D) return 0.01D;
++            pos = pos.relative(outward);
++        }
++        return Mth.clamp(factor, 0.01D, 1.0D);
++    }
++
++    private static double materialTransmission(BlockState state) {
++        if (state.is(ModBlocks.LEAD_COMPOSITE_BLOCK.get())) return 0.05D;
++        if (state.is(Blocks.IRON_BLOCK)) return 0.22D;
++        if (state.is(Blocks.DEEPSLATE) || state.is(Blocks.COBBLED_DEEPSLATE)) return 0.38D;
++        if (state.is(Blocks.STONE) || state.is(Blocks.COBBLESTONE)) return 0.50D;
++        if (state.is(Blocks.GLASS) || state.is(Blocks.TINTED_GLASS)) return 0.82D;
++        if (state.is(Blocks.DIRT) || state.is(Blocks.COARSE_DIRT)) return 0.58D;
++        return 0.64D;
++    }
++
++    private static int compare(BlockPos a, BlockPos b) {
++        int y = Integer.compare(a.getY(), b.getY());
++        if (y != 0) return y;
++        int x = Integer.compare(a.getX(), b.getX());
++        if (x != 0) return x;
++        return Integer.compare(a.getZ(), b.getZ());
++    }
++
++    private RoomScanner() {}
++}
