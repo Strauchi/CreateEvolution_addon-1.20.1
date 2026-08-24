@@ -7,6 +7,7 @@ on:
       - afterfall-build
     paths:
       - 'afterfall-build/v060_patch_gz_*.b64'
+      - 'afterfall-build/v060_common_events_*.b64'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -79,7 +80,25 @@ jobs:
             cat afterfall-build/v060_patch_gz_*.b64 > afterfall-v060.patch.gz.b64
             base64 --decode afterfall-v060.patch.gz.b64 > afterfall-v060.patch.gz
             gzip -dc afterfall-v060.patch.gz > afterfall-v060.patch
+            set +e
             patch -p1 < afterfall-v060.patch
+            v060_patch_status=$?
+            set -e
+            if [ "$v060_patch_status" -ne 0 ]; then
+              mapfile -t rejects < <(find Afterfall -name '*.rej' -print)
+              if [ "${#rejects[@]}" -ne 1 ] || [ "${rejects[0]}" != "Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java.rej" ]; then
+                echo "Unexpected 0.6 patch rejects: ${rejects[*]}"
+                exit 1
+              fi
+            fi
+            cat afterfall-build/v060_common_events_*.b64 > afterfall-v060-common-events.b64
+            base64 --decode afterfall-v060-common-events.b64 > Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+            rm -f Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java.rej
+            if find Afterfall -name '*.rej' -print -quit | grep -q .; then
+              echo 'Unexpected reject file remains after deterministic CommonEvents restore.'
+              find Afterfall -name '*.rej' -print
+              exit 1
+            fi
             grep '^mod_version=' Afterfall/gradle.properties
 
             cd Afterfall
