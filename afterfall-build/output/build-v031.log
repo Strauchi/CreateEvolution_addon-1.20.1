@@ -116,4 +116,7 @@ patching file Afterfall/src/main/resources/assets/afterfall/models/item/airlock_
 patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/air_filter_unit.json
 patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/air_intake_unit.json
 patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/airlock_controller.json
-base64: invalid input
+
+gzip: afterfall-v031.patch.gz: invalid compressed data--crc error
+
+gzip: afterfall-v031.patch.gz: invalid compressed data--length error
