@@ -1,4 +1,5 @@
 name: Build Afterfall 0.6.1 Blast Door
+# explicit build trigger after workflow registration
 
 on:
   push:
