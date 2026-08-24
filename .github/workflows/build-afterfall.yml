@@ -1,0 +1,47 @@
+name: Build Afterfall NeoForge 1.21.1
+
+on:
+  push:
+    branches:
+      - afterfall-build
+    paths:
+      - 'afterfall-build/**'
+      - '.github/workflows/build-afterfall.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle 9.2.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
+
+      - name: Reconstruct Afterfall source
+        shell: bash
+        run: |
+          cat afterfall-build/chunk_*.b64 > afterfall-source.b64
+          base64 --decode afterfall-source.b64 > afterfall-source.zip
+          unzip -t afterfall-source.zip
+          unzip -q afterfall-source.zip
+
+      - name: Build Afterfall
+        working-directory: Afterfall
+        run: gradle build --stacktrace
+
+      - name: Upload compiled mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: Afterfall-NeoForge-1.21.1
+          path: Afterfall/build/libs/*.jar
+          if-no-files-found: error
