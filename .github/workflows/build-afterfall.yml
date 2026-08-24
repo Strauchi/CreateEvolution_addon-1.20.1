@@ -5,7 +5,7 @@ on:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/v030_patch_gz_*.b64'
+      - 'afterfall-build/v031_patch_gz_*.b64'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -53,6 +53,14 @@ jobs:
           base64 --decode afterfall-v030.patch.gz.b64 > afterfall-v030.patch.gz
           gzip -dc afterfall-v030.patch.gz > afterfall-v030.patch
           patch -p0 < afterfall-v030.patch
+
+      - name: Apply Afterfall 0.3.1 airlock feedback and atmosphere-mixing patch
+        shell: bash
+        run: |
+          cat afterfall-build/v031_patch_gz_*.b64 > afterfall-v031.patch.gz.b64
+          base64 --decode afterfall-v031.patch.gz.b64 > afterfall-v031.patch.gz
+          gzip -dc afterfall-v031.patch.gz > afterfall-v031.patch
+          patch -p1 < afterfall-v031.patch
           grep '^mod_version=' Afterfall/gradle.properties
 
       - name: Build Afterfall
@@ -61,9 +69,9 @@ jobs:
         run: |
           mkdir -p afterfall-build/output
           set +e
-          (cd Afterfall && gradle build --stacktrace) 2>&1 | tee afterfall-build/output/build-v030.log
+          (cd Afterfall && gradle build --stacktrace) 2>&1 | tee afterfall-build/output/build-v031.log
           status=${PIPESTATUS[0]}
-          echo "$status" > afterfall-build/output/build-v030-status.txt
+          echo "$status" > afterfall-build/output/build-v031-status.txt
           exit $status
 
       - name: Publish build log and compiled jar
@@ -74,8 +82,8 @@ jobs:
           if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
             JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
             rm -f afterfall-build/output/Afterfall-*.jar afterfall-build/output/jar_chunk_*.b64
-            cp "$JAR" afterfall-build/output/Afterfall-0.3.0-NeoForge-1.21.1.jar
-            base64 -w 0 afterfall-build/output/Afterfall-0.3.0-NeoForge-1.21.1.jar > afterfall-build/output/afterfall.jar.b64
+            cp "$JAR" afterfall-build/output/Afterfall-0.3.1-NeoForge-1.21.1.jar
+            base64 -w 0 afterfall-build/output/Afterfall-0.3.1-NeoForge-1.21.1.jar > afterfall-build/output/afterfall.jar.b64
             split -b 8000 -d -a 2 --additional-suffix=.b64 afterfall-build/output/afterfall.jar.b64 afterfall-build/output/jar_chunk_
             rm afterfall-build/output/afterfall.jar.b64
           fi
@@ -83,7 +91,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish Afterfall 0.3.0 bunker systems build'
+            git commit -m 'Publish Afterfall 0.3.1 airlock feedback build'
             git push origin HEAD:afterfall-build
           fi
 
@@ -91,6 +99,6 @@ jobs:
         if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: Afterfall-0.3.0-NeoForge-1.21.1
+          name: Afterfall-0.3.1-NeoForge-1.21.1
           path: Afterfall/build/libs/*.jar
           if-no-files-found: error
