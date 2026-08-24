@@ -1,0 +1,119 @@
+Archive:  afterfall-source.zip
+    testing: Afterfall/               OK
+    testing: Afterfall/gradle.properties   OK
+    testing: Afterfall/build.gradle   OK
+    testing: Afterfall/src/           OK
+    testing: Afterfall/src/main/      OK
+    testing: Afterfall/src/main/templates/   OK
+    testing: Afterfall/src/main/templates/META-INF/   OK
+    testing: Afterfall/src/main/templates/META-INF/neoforge.mods.toml   OK
+    testing: Afterfall/src/main/java/   OK
+    testing: Afterfall/src/main/java/dev/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/DeconKitItem.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/RadAwayItem.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModCreativeTabs.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModItems.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModAttachments.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/event/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/radiation/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/Afterfall.java   OK
+    testing: Afterfall/src/main/resources/   OK
+    testing: Afterfall/src/main/resources/data/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/worldgen/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/worldgen/world_preset/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/worldgen/world_preset/normal.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/biome/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/biome/wasteland.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/world_preset/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/world_preset/wasteland.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/ash_block.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/assets/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/ash_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/decon_kit.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/geiger_counter.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/radaway.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/ash_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/lang/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/lang/de_de.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/lang/en_us.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/ash_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/META-INF/   OK
+    testing: Afterfall/.gitignore     OK
+    testing: Afterfall/README.md      OK
+    testing: Afterfall/settings.gradle   OK
+No errors detected in compressed data of afterfall-source.zip.
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java
+patching file Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java
+patching file Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomScanResult.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java
+patching file Afterfall/README.md
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/Afterfall.java
+patching file Afterfall/src/main/java/dev/afterfall/block/AirFilterBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/block/AirIntakeBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/block/AirlockControllerBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirFilterBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirIntakeBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockControllerBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockLogic.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlockEntities.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModCreativeTabs.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModItems.java
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java
+patching file Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomMachineUtil.java
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/air_filter_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/air_intake_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/airlock_controller.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/de_de.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/en_us.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/air_filter_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/air_intake_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/airlock_controller.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/air_filter_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/air_intake_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/airlock_controller.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/air_filter_unit.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/air_intake_unit.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/airlock_controller.json
+base64: invalid input
