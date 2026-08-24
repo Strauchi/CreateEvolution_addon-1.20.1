@@ -1,0 +1,129 @@
+eSavedData get(ServerLevel level) {
++        return level.getDataStorage().computeIfAbsent(
++                new SavedData.Factory<>(RoomAtmosphereSavedData::new, RoomAtmosphereSavedData::load),
++                DATA_NAME
++        );
++    }
++
++    public RoomAtmosphere getOrCreate(long roomId, int volume, double outsideDust, double outsideAirborneRadiation, long gameTime) {
++        RoomAtmosphere atmosphere = rooms.get(roomId);
++        if (atmosphere == null) {
++            atmosphere = new RoomAtmosphere(volume, outsideDust, outsideAirborneRadiation, gameTime);
++            rooms.put(roomId, atmosphere);
++            setDirty();
++        } else {
++            atmosphere.tickPassive(gameTime);
++            atmosphere.updateVolume(volume, outsideDust, outsideAirborneRadiation);
++            setDirty();
++        }
++        return atmosphere;
++    }
++
++    public void markChanged() {
++        setDirty();
++    }
++
++    public static RoomAtmosphereSavedData load(CompoundTag tag, HolderLookup.Provider lookupProvider) {
++        RoomAtmosphereSavedData data = new RoomAtmosphereSavedData();
++        ListTag list = tag.getList("Rooms", Tag.TAG_COMPOUND);
++        for (int i = 0; i < list.size(); i++) {
++            CompoundTag roomTag = list.getCompound(i);
++            long id = roomTag.getLong("Id");
++            int volume = roomTag.getInt("Volume");
++            double dust = roomTag.getDouble("Dust");
++            double airborne = roomTag.getDouble("AirborneRadiation");
++            long lastUpdate = roomTag.getLong("LastUpdate");
++            data.rooms.put(id, new RoomAtmosphere(volume, dust, airborne, lastUpdate));
++        }
++        return data;
++    }
++
++    @Override
++    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
++        ListTag list = new ListTag();
++        for (Map.Entry<Long, RoomAtmosphere> entry : rooms.entrySet()) {
++            RoomAtmosphere atmosphere = entry.getValue();
++            CompoundTag roomTag = new CompoundTag();
++            roomTag.putLong("Id", entry.getKey());
++            roomTag.putInt("Volume", atmosphere.volume());
++            roomTag.putDouble("Dust", atmosphere.dustPercent());
++            roomTag.putDouble("AirborneRadiation", atmosphere.airborneRadiationPerSecond());
++            roomTag.putLong("LastUpdate", atmosphere.lastUpdateGameTime());
++            list.add(roomTag);
++        }
++        tag.put("Rooms", list);
++        return tag;
++    }
++}
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java	1970-01-01 00:00:00.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java	2026-08-24 14:46:02.534709440 +0000
+@@ -0,0 +1,13 @@
++package dev.afterfall.room;
++
++public record RoomEnvironment(
++        RoomScanResult scan,
++        double dustPercent,
++        double airborneRadiationPerSecond,
++        double airQualityPercent
++) {
++    public boolean sealed() { return scan.sealed(); }
++    public int volume() { return scan.volume(); }
++    public double shieldingFactor() { return scan.shieldingFactor(); }
++    public double shieldingPercent() { return scan.shieldingPercent(); }
++}
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java	1970-01-01 00:00:00.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java	2026-08-24 14:46:02.537408259 +0000
+@@ -0,0 +1,52 @@
++package dev.afterfall.room;
++
++import net.minecraft.core.BlockPos;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.util.Mth;
++
++import java.util.HashMap;
++import java.util.Map;
++import java.util.UUID;
++
++public final class RoomEnvironmentManager {
++    private static final Map<UUID, CachedScan> CACHE = new HashMap<>();
++    private static final double WASTELAND_OUTSIDE_DUST = 92.0D;
++    private static final double WASTELAND_OUTSIDE_AIRBORNE_MSV_PER_SECOND = 0.013D;
++
++    public static RoomEnvironment sample(ServerPlayer player, boolean wasteland) {
++        ServerLevel level = player.serverLevel();
++        RoomScanResult scan = scanCached(player);
++        double outsideDust = wasteland ? WASTELAND_OUTSIDE_DUST : 4.0D;
++        double outsideAirborne = wasteland ? WASTELAND_OUTSIDE_AIRBORNE_MSV_PER_SECOND : 0.0D;
++
++        if (!scan.sealed()) {
++            return new RoomEnvironment(scan, outsideDust, outsideAirborne,
++                    Mth.clamp(100.0D - outsideDust * 0.8D, 0.0D, 100.0D));
++        }
++
++        RoomAtmosphereSavedData saved = RoomAtmosphereSavedData.get(level);
++        RoomAtmosphere atmosphere = saved.getOrCreate(
++                scan.anchor().asLong(), scan.volume(), outsideDust, outsideAirborne, level.getGameTime());
++        return new RoomEnvironment(scan, atmosphere.dustPercent(), atmosphere.airborneRadiationPerSecond(), atmosphere.airQualityPercent());
++    }
++
++    public static RoomScanResult scanCached(ServerPlayer player) {
++        BlockPos pos = player.blockPosition();
++        long second = player.serverLevel().getGameTime() / 20L;
++        CachedScan cached = CACHE.get(player.getUUID());
++        if (cached != null && cached.second == second && cached.position.equals(pos)) {
++            return cached.scan;
++        }
++        RoomScanResult scan = RoomScanner.scan(player.serverLevel(), pos);
++        CACHE.put(player.getUUID(), new CachedScan(second, pos.immutable(), scan));
++        return scan;
++    }
++
++    public static void invalidate(ServerPlayer player) {
++        CACHE.remove(player.getUUID());
++    }
++
++    private record CachedScan(long second, BlockPos position, RoomScanResult scan) {}
++    pr
