@@ -5,7 +5,7 @@ on:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/chunk_*.b64'
+      - 'afterfall-build/v020_patch_*.txt'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -32,13 +32,20 @@ jobs:
         with:
           gradle-version: '9.2.1'
 
-      - name: Reconstruct Afterfall source
+      - name: Reconstruct Afterfall 0.1 source
         shell: bash
         run: |
           cat afterfall-build/chunk_*.b64 > afterfall-source.b64
           base64 --decode afterfall-source.b64 > afterfall-source.zip
           unzip -t afterfall-source.zip
           unzip -q afterfall-source.zip
+
+      - name: Apply Afterfall 0.2 room-system patch
+        shell: bash
+        run: |
+          cat afterfall-build/v020_patch_*.txt > afterfall-v020.patch
+          patch -p1 < afterfall-v020.patch
+          grep '^mod_version=' Afterfall/gradle.properties
 
       - name: Build Afterfall
         working-directory: Afterfall
@@ -49,21 +56,21 @@ jobs:
         run: |
           mkdir -p afterfall-build/output
           JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
-          cp "$JAR" afterfall-build/output/Afterfall-0.1.0-NeoForge-1.21.1.jar
-          rm -f afterfall-build/output/jar_chunk_*.b64
-          base64 -w 0 afterfall-build/output/Afterfall-0.1.0-NeoForge-1.21.1.jar > afterfall-build/output/afterfall.jar.b64
+          rm -f afterfall-build/output/Afterfall-*.jar afterfall-build/output/jar_chunk_*.b64
+          cp "$JAR" afterfall-build/output/Afterfall-0.2.0-NeoForge-1.21.1.jar
+          base64 -w 0 afterfall-build/output/Afterfall-0.2.0-NeoForge-1.21.1.jar > afterfall-build/output/afterfall.jar.b64
           split -b 8000 -d -a 2 --additional-suffix=.b64 afterfall-build/output/afterfall.jar.b64 afterfall-build/output/jar_chunk_
           rm afterfall-build/output/afterfall.jar.b64
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
           git diff --cached --quiet && exit 0
-          git commit -m 'Publish Afterfall jar transfer chunks'
+          git commit -m 'Publish Afterfall 0.2.0 room-system jar'
           git push origin HEAD:afterfall-build
 
       - name: Upload compiled mod
         uses: actions/upload-artifact@v4
         with:
-          name: Afterfall-NeoForge-1.21.1
+          name: Afterfall-0.2.0-NeoForge-1.21.1
           path: Afterfall/build/libs/*.jar
           if-no-files-found: error
