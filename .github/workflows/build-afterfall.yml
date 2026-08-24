@@ -5,7 +5,7 @@ on:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/v031_patch_gz_*.b64'
+      - 'afterfall-build/v031fix_*.b64'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -53,7 +53,7 @@ jobs:
             gzip -dc afterfall-v030.patch.gz > afterfall-v030.patch
             patch -p0 < afterfall-v030.patch
 
-            cat afterfall-build/v031_patch_gz_*.b64 > afterfall-v031.patch.gz.b64
+            cat afterfall-build/v031fix_*.b64 > afterfall-v031.patch.gz.b64
             base64 --decode afterfall-v031.patch.gz.b64 > afterfall-v031.patch.gz
             gzip -dc afterfall-v031.patch.gz > afterfall-v031.patch
             patch -p1 < afterfall-v031.patch
