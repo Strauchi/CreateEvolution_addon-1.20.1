@@ -1,0 +1,88 @@
+diff -ruN diffold/Afterfall/gradle.properties diffnew/Afterfall/gradle.properties
+--- diffold/Afterfall/gradle.properties	2026-08-24 14:11:19.000000000 +0000
++++ diffnew/Afterfall/gradle.properties	2026-08-24 14:47:12.051196838 +0000
+@@ -14,5 +14,5 @@
+ mod_id=afterfall
+ mod_name=Afterfall
+ mod_license=All Rights Reserved
+-mod_version=0.1.0
++mod_version=0.2.0
+ mod_group_id=dev.afterfall
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java diffnew/Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java	2026-08-24 14:11:19.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java	2026-08-24 14:46:37.673019048 +0000
+@@ -6,6 +6,7 @@
+ import net.minecraft.network.chat.Component;
+ import net.minecraft.server.level.ServerPlayer;
+ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
++
+ import java.util.Locale;
+ 
+ public final class CommonEvents {
+@@ -14,11 +15,16 @@
+         if (player.tickCount % 20 != 0) return;
+ 
+         RadiationManager.tickSecond(player);
+-        boolean holdingCounter = player.getMainHandItem().is(ModItems.GEIGER_COUNTER.get()) || player.getOffhandItem().is(ModItems.GEIGER_COUNTER.get());
++        boolean holdingCounter = player.getMainHandItem().is(ModItems.GEIGER_COUNTER.get())
++                || player.getOffhandItem().is(ModItems.GEIGER_COUNTER.get());
+         if (holdingCounter) {
+             RadiationReading reading = RadiationManager.sample(player);
++            String environment = reading.room().sealed()
++                    ? String.format(Locale.ROOT, "SEALED %dm³ | Air %.0f%% | Shield %.0f%%",
++                    reading.room().volume(), reading.room().airQualityPercent(), reading.shieldingPercent())
++                    : "OPEN AIR | Shield 0%";
+             player.displayClientMessage(Component.literal(String.format(Locale.ROOT,
+-                    "☢ %.1f mSv/h | Shield %.0f%%", reading.totalRatePerHour(), reading.shieldingPercent())), true);
++                    "☢ %.1f mSv/h | %s", reading.totalRatePerHour(), environment)), true);
+         }
+     }
+ 
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java diffnew/Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java
+--- diffold/Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java	2026-08-24 14:11:19.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java	2026-08-24 14:46:37.672335094 +0000
+@@ -12,6 +12,7 @@
+ import net.minecraft.world.item.Item;
+ import net.minecraft.world.item.ItemStack;
+ import net.minecraft.world.level.Level;
++
+ import java.util.Locale;
+ 
+ public final class GeigerCounterItem extends Item {
+@@ -24,11 +25,31 @@
+             RadiationReading reading = RadiationManager.sample(serverPlayer);
+             double dose = serverPlayer.getData(ModAttachments.RADIATION_DOSE);
+             double contamination = serverPlayer.getData(ModAttachments.CONTAMINATION);
++
+             serverPlayer.sendSystemMessage(Component.literal("--- Afterfall Geiger Counter ---").withStyle(ChatFormatting.DARK_GREEN));
+-            serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT, "Radiation: %.1f mSv/h", reading.totalRatePerHour())).withStyle(rateColor(reading.totalRatePerHour())));
++            serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT,
++                    "Radiation: %.1f mSv/h", reading.totalRatePerHour())).withStyle(rateColor(reading.totalRatePerHour())));
+             serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT, "Absorbed dose: %.1f mSv", dose)));
+-            serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT, "Contamination: %.1f%%", contamination)));
+-            serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT, "Shielding: %.0f%%", reading.shieldingPercent())));
++            serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT, "Player contamination: %.1f%%", contamination)));
++
++            if (reading.room().sealed()) {
++                serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT,
++                        "Room: SEALED | Volume: %d m³", reading.room().volume())).withStyle(ChatFormatting.GREEN));
++                serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT,
++                        "Structural shielding: %.0f%%", reading.shieldingPercent())));
++                serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT,
++                        "Air quality: %.0f%% | Radioactive dust: %.1f%%",
++                        reading.room().airQualityPercent(), reading.room().dustPercent())));
++                serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT,
++                        "Airborne radiation: %.1f mSv/h", reading.room().airborneRadiationPerSecond() * 3600.0D)));
++            } else {
++                String suffix = reading.room().scan().exceededScanLimit() ? " (open / too large)" : " (connected to outside)";
++                serverPlayer.sendSystemMessage(Component.literal("Room: UNSEALED" + suffix).withStyle(ChatFormatting.RED));
++                serverPlayer.sendSystemMessage(Component.literal("Structural shielding: 0%"));
++                serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT,
++                        "Outside air quality: %.0f%% | Radioactive dust: %.1f%%",
++                        reading.room().airQualityPercent(), reading.room().dustPercent())));
++            }
+         }
+         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+     }
+diff -ruN diffold/Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java diffnew/Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java
+--- diffold/Afterfall/src/main/j
