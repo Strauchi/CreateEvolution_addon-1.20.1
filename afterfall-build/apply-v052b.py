@@ -1,3 +1,4 @@
+# Triggered rebuild for Afterfall 0.5.2 door safety
 import runpy
 from pathlib import Path
 
