@@ -1,0 +1,294 @@
+Archive:  afterfall-source.zip
+    testing: Afterfall/               OK
+    testing: Afterfall/gradle.properties   OK
+    testing: Afterfall/build.gradle   OK
+    testing: Afterfall/src/           OK
+    testing: Afterfall/src/main/      OK
+    testing: Afterfall/src/main/templates/   OK
+    testing: Afterfall/src/main/templates/META-INF/   OK
+    testing: Afterfall/src/main/templates/META-INF/neoforge.mods.toml   OK
+    testing: Afterfall/src/main/java/   OK
+    testing: Afterfall/src/main/java/dev/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/DeconKitItem.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/RadAwayItem.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModCreativeTabs.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModItems.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/content/ModAttachments.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/event/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/radiation/   OK
+    testing: Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java   OK
+    testing: Afterfall/src/main/java/dev/afterfall/Afterfall.java   OK
+    testing: Afterfall/src/main/resources/   OK
+    testing: Afterfall/src/main/resources/data/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/worldgen/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/worldgen/world_preset/   OK
+    testing: Afterfall/src/main/resources/data/minecraft/tags/worldgen/world_preset/normal.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/biome/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/biome/wasteland.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/world_preset/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/worldgen/world_preset/wasteland.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/ash_block.json   OK
+    testing: Afterfall/src/main/resources/data/afterfall/loot_table/blocks/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/assets/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/ash_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/decon_kit.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/geiger_counter.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/radaway.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/item/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/ash_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/models/block/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/lang/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/lang/de_de.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/lang/en_us.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/lead_composite_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/ash_block.json   OK
+    testing: Afterfall/src/main/resources/assets/afterfall/blockstates/radioactive_waste_block.json   OK
+    testing: Afterfall/src/main/resources/META-INF/   OK
+    testing: Afterfall/.gitignore     OK
+    testing: Afterfall/README.md      OK
+    testing: Afterfall/settings.gradle   OK
+No errors detected in compressed data of afterfall-source.zip.
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java
+patching file Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java
+patching file Afterfall/src/main/java/dev/afterfall/radiation/RadiationReading.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomScanResult.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java
+patching file Afterfall/README.md
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/Afterfall.java
+patching file Afterfall/src/main/java/dev/afterfall/block/AirFilterBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/block/AirIntakeBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/block/AirlockControllerBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirFilterBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirIntakeBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockControllerBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockLogic.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlockEntities.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModCreativeTabs.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModItems.java
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/item/GeigerCounterItem.java
+patching file Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironment.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomMachineUtil.java
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/air_filter_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/air_intake_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/airlock_controller.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/de_de.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/en_us.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/air_filter_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/air_intake_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/airlock_controller.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/air_filter_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/air_intake_unit.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/airlock_controller.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/air_filter_unit.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/air_intake_unit.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/airlock_controller.json
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockControllerBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockLogic.java
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphereSavedData.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomEnvironmentManager.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomMachineUtil.java
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/Afterfall.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirFilterBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirIntakeBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockControllerBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockLogic.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModCreativeTabs.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModItems.java
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomMachineUtil.java
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/airlock_call_panel.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/de_de.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/en_us.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/airlock_call_panel.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/airlock_call_panel.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/airlock_call_panel.json
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/Afterfall.java
+patching file Afterfall/src/main/java/dev/afterfall/block/EmergencyGeneratorBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirFilterBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirIntakeBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockControllerBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockLogic.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/EmergencyGeneratorBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlockEntities.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModCapabilities.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModCreativeTabs.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModItems.java
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/machine/FilterBank.java
+patching file Afterfall/src/main/java/dev/afterfall/machine/MachineEnergyStorage.java
+patching file Afterfall/src/main/java/dev/afterfall/machine/MachinePower.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/emergency_generator.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/de_de.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/en_us.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/block/emergency_generator.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/emergency_generator.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/hepa_filter_cartridge.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/prefilter_cartridge.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/rad_filter_cartridge.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/emergency_generator.json
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockControllerBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/machine/FilterBank.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomAtmosphere.java
+patching file Afterfall/gradle.properties
+patching file Afterfall/src/main/java/dev/afterfall/Afterfall.java
+patching file Afterfall/src/main/java/dev/afterfall/block/AfterfallDoorBlock.java
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/AirlockLogic.java
+Hunk #2 succeeded at 296 (offset -10 lines).
+patching file Afterfall/src/main/java/dev/afterfall/blockentity/EmergencyGeneratorBlockEntity.java
+patching file Afterfall/src/main/java/dev/afterfall/client/ClientModEvents.java
+patching file Afterfall/src/main/java/dev/afterfall/client/MachineScreen.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModBlocks.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModCreativeTabs.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModItems.java
+patching file Afterfall/src/main/java/dev/afterfall/content/ModMenus.java
+patching file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
+Hunk #5 FAILED at 119.
+1 out of 7 hunks FAILED -- saving rejects to file Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java.rej
+patching file Afterfall/src/main/java/dev/afterfall/menu/MachineMenu.java
+patching file Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/heavy_blast_door.json
+patching file Afterfall/src/main/resources/assets/afterfall/blockstates/sealed_airlock_door.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/de_de.json
+patching file Afterfall/src/main/resources/assets/afterfall/lang/en_us.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/heavy_blast_door.json
+patching file Afterfall/src/main/resources/assets/afterfall/models/item/sealed_airlock_door.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/heavy_blast_door.json
+patching file Afterfall/src/main/resources/data/afterfall/loot_table/blocks/sealed_airlock_door.json
+mod_version=0.6.1
+
+Welcome to Gradle 9.2.1!
+
+Here are the highlights of this release:
+ - Windows ARM support
+ - Improved publishing APIs
+ - Better guidance for dependency verification failures
+
+For more details see https://docs.gradle.org/9.2.1/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+Calculating task graph as no cached configuration is available for tasks: build
+
+> Configure project :
+Creating Minecraft artifacts without recompilation.
+
+> Task :processTestResources NO-SOURCE
+> Task :jarJar NO-SOURCE
+> Task :generateModMetadata
+> Task :processResources
+
+> Task :createMinecraftArtifacts
+Loaded 131 artifacts from /home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
+[1m*** Started working on [4mdownloadJson[0m[0m
+  ↓ https://launchermeta.mojang.com/mc/game/version_manifest_v2.json
+  ↓ https://piston-meta.mojang.com/v1/packages/9d4b0811c18ea0e0968693b971233c49d89b9ced/1.21.1.json
+ [1m[92m✓[0m Completed [4mdownloadJson[0m in 0.45s
+[1m*** Started working on [4mdownloadClientMappings[0m[0m
+[1m*** Started working on [4mdownloadClient[0m[0m
+[1m*** Started working on [4mdownloadServer[0m[0m
+  ↓ https://piston-data.mojang.com/v1/objects/59353fb40c36d304f2035d51e7d6e6baa98dc05c/server.jar
+  ↓ https://piston-data.mojang.com/v1/objects/30c73b1c5da787909b2f73340419fdf13b9def88/client.jar
+  ↓ https://piston-data.mojang.com/v1/objects/2244b6f072256667bcd9a73df124d6c58de77992/client.txt
+ [1m[92m✓[0m Completed [4mdownloadClientMappings[0m in 0.44s
+[1m*** Started working on [4mmergeMappings[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ [1m[92m✓[0m Completed [4mdownloadClient[0m in 1.02s
+[1m*** Started working on [4mstripClient[0m[0m
+ [1m[92m✓[0m Completed [4mdownloadServer[0m in 1.30s
+[1m*** Started working on [4mextractServer[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ [1m[92m✓[0m Completed [4mextractServer[0m in 0.79s
+[1m*** Started working on [4mstripServer[0m[0m
+ [1m[92m✓[0m Completed [4mmergeMappings[0m in 3.88s
+ [1m[92m✓[0m Completed [4mstripClient[0m in 3.45s
+ [1m[92m✓[0m Completed [4mstripServer[0m in 2.48s
+[1m*** Started working on [4mmerge[0m[0m
+ ↳ Running external tool net.neoforged:mergetool:2.0.3:fatjar
+ [1m[92m✓[0m Completed [4mmerge[0m in 3.09s
+[1m*** Started working on [4mrename[0m[0m
+ ↳ Running external tool net.neoforged:AutoRenamingTool:2.0.3:all
+ [1m[92m✓[0m Completed [4mrename[0m in 5.94s
+[1m*** Started working on [4mbinaryPatch[0m[0m
+  [33mWARNING: [0mnet.neoforged.installertools:binarypatcher:2.1.2:fatjar is not present in the artifact manifest
+  ↓ https://maven.neoforged.net/releases/net/neoforged/installertools/binarypatcher/2.1.2/binarypatcher-2.1.2-fatjar.jar
+ ↳ Running external tool net.neoforged.installertools:binarypatcher:2.1.2:fatjar
+ [1m[92m✓[0m Completed [4mbinaryPatch[0m in 6.06s
+[1m*** Started working on [4mcopyUnpatchedClasses[0m[0m
+ [1m[92m✓[0m Completed [4mcopyUnpatchedClasses[0m in 1.70s
+[1m*** Started working on [4mapplyDevTransforms[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:4.0.12:fatjar
+ [1m[92m✓[0m Completed [4mapplyDevTransforms[0m in 2.10s
+[1m*** Started working on [4mbinaryWithNeoForge[0m[0m
+ [1m[92m✓[0m Completed [4mbinaryWithNeoForge[0m in 6.27s
+Total runtime: 31.16s
+
+
+> Task :compileJava
+/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/src/main/java/dev/afterfall/client/ClientModEvents.java:12: warning: [removal] bus() in EventBusSubscriber has been deprecated and marked for removal
+@EventBusSubscriber(modid = Afterfall.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                              ^
+/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/src/main/java/dev/afterfall/client/ClientModEvents.java:12: warning: [removal] Bus in EventBusSubscriber has been deprecated and marked for removal
+@EventBusSubscriber(modid = Afterfall.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                                                      ^
+Note: /home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/src/main/java/dev/afterfall/room/RoomScanner.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+2 warnings
+
+> Task :classes
+> Task :compileTestJava NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :check UP-TO-DATE
+> Task :jar
+> Task :assemble
+> Task :build
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1787607492229.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1m 15s
+5 actionable tasks: 5 executed
+Configuration cache entry stored.
