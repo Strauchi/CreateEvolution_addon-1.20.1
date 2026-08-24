@@ -1,0 +1,112 @@
+ava/dev/afterfall/radiation/RadiationManager.java	2026-08-24 14:12:33.000000000 +0000
++++ diffnew/Afterfall/src/main/java/dev/afterfall/radiation/RadiationManager.java	2026-08-24 14:46:37.671184248 +0000
+@@ -2,6 +2,8 @@
+ 
+ import dev.afterfall.content.ModAttachments;
+ import dev.afterfall.content.ModBlocks;
++import dev.afterfall.room.RoomEnvironment;
++import dev.afterfall.room.RoomEnvironmentManager;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.server.level.ServerLevel;
+ import net.minecraft.server.level.ServerPlayer;
+@@ -9,33 +11,39 @@
+ import net.minecraft.world.effect.MobEffectInstance;
+ import net.minecraft.world.effect.MobEffects;
+ import net.minecraft.world.level.Level;
+-import net.minecraft.world.level.block.Blocks;
+-import net.minecraft.world.level.block.state.BlockState;
+ 
+ public final class RadiationManager {
+-    private static final int SHIELD_SCAN_HEIGHT = 14;
+     private static final int HOTSPOT_RADIUS = 8;
+-    private static final double EXPOSED_BACKGROUND_MSV_PER_SECOND = 0.035D;
+-    private static final double SHELTERED_BACKGROUND_MSV_PER_SECOND = 0.006D;
++
++    // Outdoor wasteland radiation is split into penetrating gamma and radioactive
++    // particles suspended in the air. A sealed room only shields the external gamma;
++    // trapped dirty air remains dangerous until it is filtered later by bunker machinery.
++    private static final double WASTELAND_GAMMA_MSV_PER_SECOND = 0.022D;
++    private static final double WASTELAND_AIRBORNE_MSV_PER_SECOND = 0.013D;
+     private static final double HOTSPOT_STRENGTH_MSV_PER_SECOND = 0.85D;
+ 
+     public static RadiationReading sample(ServerPlayer player) {
+         ServerLevel level = player.serverLevel();
+         BlockPos playerPos = player.blockPosition();
+         if (!Level.OVERWORLD.equals(level.dimension())) {
+-            return new RadiationReading(0.0D, 0.0D, contaminationInternalRate(player), 1.0D, false, false);
++            RoomEnvironment room = RoomEnvironmentManager.sample(player, false);
++            return new RadiationReading(0.0D, 0.0D, 0.0D, contaminationInternalRate(player),
++                    room.shieldingFactor(), false, false, room);
+         }
+ 
+-        boolean skyExposed = level.canSeeSky(playerPos.above());
+         boolean wasteland = isWasteland(level, playerPos);
+-        double shielding = calculateShielding(level, playerPos);
+-        double rawBackground = wasteland
+-                ? (skyExposed ? EXPOSED_BACKGROUND_MSV_PER_SECOND : SHELTERED_BACKGROUND_MSV_PER_SECOND)
+-                : 0.0D;
+-        double background = rawBackground * shielding;
++        RoomEnvironment room = RoomEnvironmentManager.sample(player, wasteland);
++        boolean skyExposed = level.canSeeSky(playerPos.above());
++
++        double shielding = room.sealed() ? room.shieldingFactor() : 1.0D;
++        double externalGamma = wasteland ? WASTELAND_GAMMA_MSV_PER_SECOND * shielding : 0.0D;
++        double airborne = wasteland
++                ? (room.sealed() ? room.airborneRadiationPerSecond() : WASTELAND_AIRBORNE_MSV_PER_SECOND)
++                : room.airborneRadiationPerSecond();
+         double hotspot = calculateHotspotRate(level, playerPos) * shielding;
+         double internal = contaminationInternalRate(player);
+-        return new RadiationReading(background, hotspot, internal, shielding, skyExposed, wasteland);
++
++        return new RadiationReading(externalGamma, hotspot, airborne, internal, shielding, skyExposed, wasteland, room);
+     }
+ 
+     public static void tickSecond(ServerPlayer player) {
+@@ -46,10 +54,18 @@
+ 
+         double contamination = player.getData(ModAttachments.CONTAMINATION);
+         double contaminationGain = 0.0D;
+-        if (reading.wasteland() && reading.skyExposed()) {
+-            contaminationGain += 0.035D;
+-            if (player.serverLevel().isRainingAt(player.blockPosition().above())) contaminationGain += 0.09D;
++
++        // Radioactive dust is now room-aware. An airtight bunker prevents new outdoor
++        // dust from entering, but whatever dust is already trapped in the room can
++        // still contaminate the player until an air filtration system removes it.
++        if (reading.wasteland()) {
++            double dustFraction = reading.room().dustPercent() / 100.0D;
++            contaminationGain += reading.room().sealed() ? 0.010D * dustFraction : 0.035D;
++            if (!reading.room().sealed() && player.serverLevel().isRainingAt(player.blockPosition().above())) {
++                contaminationGain += 0.09D;
++            }
+         }
++
+         if (reading.hotspotRatePerSecond() > 0.05D) {
+             contaminationGain += Math.min(0.35D, reading.hotspotRatePerSecond() * 0.18D);
+         }
+@@ -72,27 +88,11 @@
+         return (contamination / 100.0D) * 0.08D;
+     }
+ 
+-    private static double calculateShielding(ServerLevel level, BlockPos origin) {
+-        double factor = 1.0D;
+-        for (int dy = 1; dy <= SHIELD_SCAN_HEIGHT; dy++) {
+-            BlockPos pos = origin.above(dy);
+-            BlockState state = level.getBlockState(pos);
+-            if (state.isAir()) continue;
+-
+-            if (state.is(ModBlocks.LEAD_COMPOSITE_BLOCK.get())) factor *= 0.14D;
+-            else if (state.is(Blocks.IRON_BLOCK)) factor *= 0.42D;
+-            else if (state.is(Blocks.DEEPSLATE) || state.is(Blocks.COBBLED_DEEPSLATE)) factor *= 0.62D;
+-            else if (state.is(Blocks.STONE) || state.is(Blocks.COBBLESTONE)) factor *= 0.72D;
+-            else if (!state.getCollisionShape(level, pos).isEmpty()) factor *= 0.84D;
+-
+-            if (factor <= 0.015D) return 0.015D;
+-        }
+-        return Mth.clamp(factor, 0.015D, 1.0D);
+-    }
+-
+     private static double calculateHotspotRate(ServerLevel level, BlockPos center) {
+         double total = 0.0D;
+-        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-HOTSPOT_RADIUS, -4, -HOTSPOT_RADIUS), center.offset(HOTSPOT_RADIUS, 4, HOTSPOT_RADIUS))) {
++        for (BlockPos pos : BlockPos.bet
