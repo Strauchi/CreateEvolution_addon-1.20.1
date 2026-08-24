@@ -1,0 +1,1 @@
+trigger Afterfall 0.6.0 compile fix 2026-08-24T20:04+02:00
