@@ -114,11 +114,18 @@ jobs:
           echo "$status" > afterfall-build/output/build-v061-status.txt
           exit $status
 
-      - name: Publish build log and compiled jar
+      - name: Publish build log, compiled jar and exact source snapshot
         if: always()
         shell: bash
         run: |
           mkdir -p afterfall-build/output
+          if [ -d Afterfall/src/main ]; then
+            rm -rf afterfall-build/snapshot-v061
+            mkdir -p afterfall-build/snapshot-v061
+            cp -R Afterfall/src/main afterfall-build/snapshot-v061/
+            cp Afterfall/gradle.properties afterfall-build/snapshot-v061/ 2>/dev/null || true
+            cp Afterfall/build.gradle afterfall-build/snapshot-v061/ 2>/dev/null || true
+          fi
           if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
             JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
             rm -f afterfall-build/output/Afterfall-0.6.1-NeoForge-1.21.1.jar
@@ -127,8 +134,11 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
+          if [ -d afterfall-build/snapshot-v061 ]; then
+            git add afterfall-build/snapshot-v061/
+          fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish Afterfall 0.6.1 animated 3x2 blast door build'
+            git commit -m 'Publish Afterfall 0.6.1 exact source snapshot'
             git push origin HEAD:afterfall-build
           fi
 
