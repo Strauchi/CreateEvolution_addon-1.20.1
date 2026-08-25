@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "afterfall:block/heavy_blast_door_frame"
+      }
+    }
+  ]
+}
