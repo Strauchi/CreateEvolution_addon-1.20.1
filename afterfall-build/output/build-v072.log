@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/afterfall-build/v072_return_mixing_fix.py", line 471, in <module>
+    replace_once(JAVA / 'Afterfall.java', 'Afterfall 0.6.0 initialized', 'Afterfall 0.7.2 initialized')
+  File "/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/afterfall-build/v072_return_mixing_fix.py", line 21, in replace_once
+    raise RuntimeError(f'Expected text not found in {p}: {old[:120]!r}')
+RuntimeError: Expected text not found in Afterfall/src/main/java/dev/afterfall/Afterfall.java: 'Afterfall 0.6.0 initialized'
