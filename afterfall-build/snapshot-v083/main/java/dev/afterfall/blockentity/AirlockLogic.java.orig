@@ -1,0 +1,304 @@
+package dev.afterfall.blockentity;
+
+import dev.afterfall.content.ModBlocks;
+import dev.afterfall.room.RoomAtmosphere;
+import dev.afterfall.room.RoomAtmosphereSavedData;
+import dev.afterfall.room.RoomEnvironmentManager;
+import dev.afterfall.room.RoomMachineUtil;
+import dev.afterfall.room.RoomScanResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.AABB;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+public final class AirlockLogic {
+    private static final int CONTROLLER_RADIUS = 8;
+    private static final int DOOR_RADIUS = 6;
+
+    public static final double SAFE_DUST_PERCENT = 0.50D;
+    public static final double SAFE_AIRBORNE_MSV_PER_HOUR = 0.25D;
+    public static final double SAFE_MIN_OXYGEN = 19.50D;
+    public static final double SAFE_MAX_CO2 = 0.50D;
+    public static final double SAFE_MIN_AIR_QUALITY = 95.0D;
+    public static final int MAX_AIRLOCK_VOLUME = 160;
+
+    public enum StatusType {
+        NOT_CONFIGURED,
+        DOOR_OPEN,
+        NO_SEALED_CHAMBER,
+        CHAMBER_TOO_LARGE,
+        UNSAFE_NO_POWER,
+        FILTER_REQUIRED,
+        PURGING,
+        SAFE
+    }
+
+    public record AirlockStatus(
+            StatusType type,
+            boolean powered,
+            int linkedDoors,
+            RoomScanResult scan,
+            RoomAtmosphere atmosphere
+    ) {
+        public boolean safe() { return type == StatusType.SAFE; }
+        public boolean hasAtmosphere() { return atmosphere != null && scan != null; }
+    }
+
+    public record ControllerLink(BlockPos controller, BlockPos door) {}
+
+    public static ControllerLink findControllerForPanel(Level level, BlockPos panelPos) {
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        ControllerLink best = null;
+        double bestScore = Double.MAX_VALUE;
+        for (int x = -CONTROLLER_RADIUS; x <= CONTROLLER_RADIUS; x++) {
+            for (int y = -CONTROLLER_RADIUS; y <= CONTROLLER_RADIUS; y++) {
+                for (int z = -CONTROLLER_RADIUS; z <= CONTROLLER_RADIUS; z++) {
+                    cursor.set(panelPos.getX() + x, panelPos.getY() + y, panelPos.getZ() + z);
+                    if (!level.getBlockState(cursor).is(ModBlocks.AIRLOCK_CONTROLLER.get())) continue;
+                    List<BlockPos> doors = findTwoDoors(level, cursor);
+                    if (doors.size() != 2) continue;
+                    BlockPos nearestDoor = doors.stream().min(Comparator.comparingDouble(panelPos::distSqr)).orElse(null);
+                    if (nearestDoor == null) continue;
+                    double score = panelPos.distSqr(nearestDoor) + 0.15D * panelPos.distSqr(cursor);
+                    if (score < bestScore) {
+                        bestScore = score;
+                        best = new ControllerLink(cursor.immutable(), nearestDoor);
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    public static BlockPos findControllerForDoor(Level level, BlockPos clickedDoor) {
+        BlockPos door = lowerDoorPos(level, clickedDoor);
+        if (door == null) return null;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (int x = -CONTROLLER_RADIUS; x <= CONTROLLER_RADIUS; x++) {
+            for (int y = -CONTROLLER_RADIUS; y <= CONTROLLER_RADIUS; y++) {
+                for (int z = -CONTROLLER_RADIUS; z <= CONTROLLER_RADIUS; z++) {
+                    cursor.set(door.getX() + x, door.getY() + y, door.getZ() + z);
+                    if (!level.getBlockState(cursor).is(ModBlocks.AIRLOCK_CONTROLLER.get())) continue;
+                    List<BlockPos> linked = findTwoDoors(level, cursor);
+                    if (!linked.contains(door)) continue;
+                    double distance = cursor.distSqr(door);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        best = cursor.immutable();
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    public static BlockPos closestLinkedDoor(Level level, BlockPos controller, BlockPos reference) {
+        return findTwoDoors(level, controller).stream()
+                .min(Comparator.comparingDouble(reference::distSqr)).orElse(null);
+    }
+
+    public static BlockPos otherDoor(Level level, BlockPos controller, BlockPos doorPos) {
+        BlockPos lower = lowerDoorPos(level, doorPos);
+        if (lower == null) return null;
+        for (BlockPos door : findTwoDoors(level, controller)) {
+            if (!door.equals(lower)) return door;
+        }
+        return null;
+    }
+
+    public static boolean otherLinkedDoorOpen(Level level, BlockPos controller, BlockPos clickedDoor) {
+        BlockPos clickedLower = lowerDoorPos(level, clickedDoor);
+        if (clickedLower == null) return false;
+        for (BlockPos door : findTwoDoors(level, controller)) {
+            if (door.equals(clickedLower)) continue;
+            if (isDoorOpen(level, door)) return true;
+        }
+        return false;
+    }
+
+    public static boolean hasTwoLinkedClosedDoors(Level level, BlockPos controller) {
+        List<BlockPos> doors = findTwoDoors(level, controller);
+        return doors.size() == 2 && !isDoorOpen(level, doors.get(0)) && !isDoorOpen(level, doors.get(1));
+    }
+
+    public static AirlockStatus inspectStatus(ServerLevel level, BlockPos controller) {
+        List<BlockPos> doors = findTwoDoors(level, controller);
+        boolean powered = controllerPowered(level, controller);
+        if (doors.size() != 2) {
+            return new AirlockStatus(StatusType.NOT_CONFIGURED, powered, doors.size(), null, null);
+        }
+        if (isDoorOpen(level, doors.get(0)) || isDoorOpen(level, doors.get(1))) {
+            return new AirlockStatus(StatusType.DOOR_OPEN, powered, doors.size(), null, null);
+        }
+
+        RoomScanResult scan = RoomMachineUtil.findSealedAdjacentRoom(level, controller);
+        if (scan == null) {
+            return new AirlockStatus(StatusType.NO_SEALED_CHAMBER, powered, doors.size(), null, null);
+        }
+        if (scan.volume() > MAX_AIRLOCK_VOLUME) {
+            return new AirlockStatus(StatusType.CHAMBER_TOO_LARGE, powered, doors.size(), scan, null);
+        }
+
+        boolean wasteland = RoomEnvironmentManager.isWasteland(level, scan.anchor());
+        RoomAtmosphere atmosphere = RoomAtmosphereSavedData.get(level).getOrCreate(
+                scan.anchor().asLong(), scan.volume(),
+                RoomEnvironmentManager.outsideDust(wasteland),
+                RoomEnvironmentManager.outsideAirborneRadiation(wasteland),
+                level.getGameTime());
+
+        BlockEntity blockEntity = level.getBlockEntity(controller);
+        if (blockEntity instanceof AirlockControllerBlockEntity airlock && !airlock.filters().complete()) {
+            return new AirlockStatus(StatusType.FILTER_REQUIRED, powered, doors.size(), scan, atmosphere);
+        }
+        if (isAtmosphereSafe(atmosphere)) {
+            return new AirlockStatus(StatusType.SAFE, powered, doors.size(), scan, atmosphere);
+        }
+        return new AirlockStatus(powered ? StatusType.PURGING : StatusType.UNSAFE_NO_POWER,
+                powered, doors.size(), scan, atmosphere);
+    }
+
+    public static boolean isAtmosphereSafe(RoomAtmosphere atmosphere) {
+        if (atmosphere == null) return false;
+        return atmosphere.dustPercent() <= SAFE_DUST_PERCENT
+                && atmosphere.airborneRadiationPerSecond() * 3600.0D <= SAFE_AIRBORNE_MSV_PER_HOUR
+                && atmosphere.oxygenPercent() >= SAFE_MIN_OXYGEN
+                && atmosphere.co2Percent() <= SAFE_MAX_CO2
+                && atmosphere.airQualityPercent() >= SAFE_MIN_AIR_QUALITY;
+    }
+
+    public static void setDoorOpen(ServerLevel level, BlockPos doorPos, boolean open) {
+        BlockPos lower = lowerDoorPos(level, doorPos);
+        if (lower == null) return;
+        BlockState lowerState = level.getBlockState(lower);
+        if (!(lowerState.getBlock() instanceof DoorBlock) || !lowerState.hasProperty(BlockStateProperties.OPEN)) return;
+        if (lowerState.getValue(BlockStateProperties.OPEN) == open) return;
+
+        level.setBlock(lower, lowerState.setValue(BlockStateProperties.OPEN, open), 3);
+        BlockPos upper = lower.above();
+        BlockState upperState = level.getBlockState(upper);
+        if (upperState.getBlock() instanceof DoorBlock && upperState.hasProperty(BlockStateProperties.OPEN)) {
+            level.setBlock(upper, upperState.setValue(BlockStateProperties.OPEN, open), 3);
+        }
+        level.playSound(null, lower, open ? SoundEvents.IRON_DOOR_OPEN : SoundEvents.IRON_DOOR_CLOSE,
+                SoundSource.BLOCKS, 0.9F, open ? 1.0F : 0.95F);
+    }
+
+    public static boolean controllerPowered(ServerLevel level, BlockPos controller) {
+        BlockEntity blockEntity = level.getBlockEntity(controller);
+        if (blockEntity instanceof AirlockControllerBlockEntity airlock) {
+            return airlock.hasPowerAvailable(level);
+        }
+        return level.hasNeighborSignal(controller);
+    }
+
+    public static boolean isDoorOpen(Level level, BlockPos lowerDoor) {
+        BlockState state = level.getBlockState(lowerDoor);
+        return state.getBlock() instanceof DoorBlock
+                && state.hasProperty(BlockStateProperties.OPEN)
+                && state.getValue(BlockStateProperties.OPEN);
+    }
+
+    public static Direction chamberSideForDoor(ServerLevel level, BlockPos doorPos, BlockPos chamberAnchor) {
+        BlockPos lower = lowerDoorPos(level, doorPos);
+        if (lower == null) return null;
+        BlockState state = level.getBlockState(lower);
+        if (!state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) return null;
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        for (Direction side : new Direction[]{facing, facing.getOpposite()}) {
+            RoomScanResult scan = RoomMachineUtil.scanDoorSide(level, lower, side);
+            if (scan != null && scan.sealed() && scan.anchor().equals(chamberAnchor)) return side;
+        }
+        return null;
+    }
+
+    public static boolean isPlayerOnChamberSide(ServerLevel level, ServerPlayer player, BlockPos doorPos, BlockPos chamberAnchor) {
+        Direction chamberSide = chamberSideForDoor(level, doorPos, chamberAnchor);
+        if (chamberSide == null) {
+            return player.blockPosition().distSqr(chamberAnchor) < player.blockPosition().distSqr(doorPos);
+        }
+        return isPlayerOnDoorSide(player, doorPos, chamberSide);
+    }
+
+    public static boolean isPlayerInDoorway(ServerPlayer player, BlockPos doorPos) {
+        if (player == null || doorPos == null) return false;
+        BlockPos lower = lowerDoorPos(player.level(), doorPos);
+        if (lower == null) lower = doorPos;
+        AABB doorway = new AABB(lower.getX(), lower.getY(), lower.getZ(),
+                lower.getX() + 1.0D, lower.getY() + 2.0D, lower.getZ() + 1.0D).inflate(0.08D);
+        return player.getBoundingBox().intersects(doorway);
+    }
+
+    public static boolean isPlayerOnDoorSide(ServerPlayer player, BlockPos doorPos, Direction side) {
+        if (side == null) return false;
+        double dx = player.getX() - (doorPos.getX() + 0.5D);
+        double dz = player.getZ() - (doorPos.getZ() + 0.5D);
+        double dot = dx * side.getStepX() + dz * side.getStepZ();
+        return dot > 0.05D;
+    }
+
+    public static void prepareDoorOpening(ServerLevel level, BlockPos controller, BlockPos doorPos, double outsideExchange) {
+        RoomScanResult chamber = RoomMachineUtil.findSealedAdjacentRoom(level, controller);
+        if (chamber == null) return;
+
+        List<RoomScanResult> rooms = RoomMachineUtil.findSealedRoomsOnDoorSides(level, doorPos);
+        if (rooms.size() == 2) {
+            RoomEnvironmentManager.equilibrateAcrossClosedDoor(level, doorPos);
+            return;
+        }
+
+        RoomAtmosphereSavedData saved = RoomAtmosphereSavedData.get(level);
+        boolean wasteland = RoomEnvironmentManager.isWasteland(level, doorPos);
+        RoomAtmosphere atmosphere = saved.getOrCreate(chamber.anchor().asLong(), chamber.volume(),
+                RoomEnvironmentManager.outsideDust(wasteland),
+                RoomEnvironmentManager.outsideAirborneRadiation(wasteland), level.getGameTime());
+        atmosphere.exposeToOutside(RoomEnvironmentManager.outsideDust(wasteland),
+                RoomEnvironmentManager.outsideAirborneRadiation(wasteland), outsideExchange);
+        saved.markChanged();
+    }
+
+    public static List<BlockPos> findTwoDoors(Level level, BlockPos controller) {
+        List<BlockPos> doors = new ArrayList<>();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int x = -DOOR_RADIUS; x <= DOOR_RADIUS; x++) {
+            for (int y = -DOOR_RADIUS; y <= DOOR_RADIUS; y++) {
+                for (int z = -DOOR_RADIUS; z <= DOOR_RADIUS; z++) {
+                    cursor.set(controller.getX() + x, controller.getY() + y, controller.getZ() + z);
+                    BlockState state = level.getBlockState(cursor);
+                    if (!(state.getBlock() instanceof DoorBlock)) continue;
+                    if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                            && state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.LOWER) continue;
+                    doors.add(cursor.immutable());
+                }
+            }
+        }
+        doors.sort(Comparator.comparingDouble(controller::distSqr));
+        return doors.size() > 2 ? new ArrayList<>(doors.subList(0, 2)) : doors;
+    }
+
+    public static BlockPos lowerDoorPos(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof DoorBlock)) return null;
+        if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                && state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
+            return pos.below().immutable();
+        }
+        return pos.immutable();
+    }
+
+    private AirlockLogic() {}
+}
