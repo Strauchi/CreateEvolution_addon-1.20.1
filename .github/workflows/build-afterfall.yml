@@ -1,13 +1,13 @@
 name: Build Afterfall NeoForge 1.21.1
-# 0.6.1 animated 3x2 Heavy Blast Door integration
+# 0.6.2 Heavy Blast Door stability fixes
 
 on:
   push:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/v061m_*.b64'
-      - 'afterfall-build/v061_trigger_*'
+      - 'afterfall-build/v062_fix.py'
+      - 'afterfall-build/v062_trigger_*'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -34,7 +34,7 @@ jobs:
         with:
           gradle-version: '9.2.1'
 
-      - name: Reconstruct and build Afterfall 0.6.1
+      - name: Build Afterfall 0.6.2 from exact 0.6.1 snapshot
         id: build
         shell: bash
         run: |
@@ -44,101 +44,46 @@ jobs:
             set -e
             cat afterfall-build/chunk_*.b64 > afterfall-source.b64
             base64 --decode afterfall-source.b64 > afterfall-source.zip
-            unzip -t afterfall-source.zip
             unzip -q afterfall-source.zip
 
-            cat afterfall-build/v020_patch_*.txt > afterfall-v020.patch
-            patch -p1 < afterfall-v020.patch
+            rm -rf Afterfall/src/main
+            cp -R afterfall-build/snapshot-v061/main Afterfall/src/main
+            cp afterfall-build/snapshot-v061/gradle.properties Afterfall/gradle.properties
+            cp afterfall-build/snapshot-v061/build.gradle Afterfall/build.gradle
 
-            cat afterfall-build/v030_patch_gz_*.b64 > afterfall-v030.patch.gz.b64
-            base64 --decode afterfall-v030.patch.gz.b64 > afterfall-v030.patch.gz
-            gzip -dc afterfall-v030.patch.gz > afterfall-v030.patch
-            patch -p0 < afterfall-v030.patch
-
-            cat afterfall-build/v031fix_*.b64 > afterfall-v031.patch.gz.b64
-            base64 --decode afterfall-v031.patch.gz.b64 > afterfall-v031.patch.gz
-            gzip -dc afterfall-v031.patch.gz > afterfall-v031.patch
-            patch -p1 < afterfall-v031.patch
-
-            cat afterfall-build/v040_patch_gz_*.b64 > afterfall-v040.patch.gz.b64
-            base64 --decode afterfall-v040.patch.gz.b64 > afterfall-v040.patch.gz
-            gzip -dc afterfall-v040.patch.gz > afterfall-v040.patch
-            patch -p0 < afterfall-v040.patch
-
-            cat afterfall-build/v050_patch_*.b64 > afterfall-v050.patch.gz.b64
-            base64 --decode afterfall-v050.patch.gz.b64 > afterfall-v050.patch.gz
-            gzip -dc afterfall-v050.patch.gz > afterfall-v050.patch
-            patch -p0 < afterfall-v050.patch
-
-            cat afterfall-build/v051_patch_gz_*.b64 > afterfall-v051.patch.gz.b64
-            base64 --decode afterfall-v051.patch.gz.b64 > afterfall-v051.patch.gz
-            gzip -dc afterfall-v051.patch.gz > afterfall-v051.patch
-            patch -p0 < afterfall-v051.patch
-
-            python3 afterfall-build/apply-v052b.py
-
-            cat afterfall-build/v060_patch_gz_*.b64 > afterfall-v060.patch.gz.b64
-            base64 --decode afterfall-v060.patch.gz.b64 > afterfall-v060.patch.gz
-            gzip -dc afterfall-v060.patch.gz > afterfall-v060.patch
-            set +e
-            patch -p1 < afterfall-v060.patch
-            v060_patch_status=$?
-            set -e
-            if [ "$v060_patch_status" -ne 0 ]; then
-              mapfile -t rejects < <(find Afterfall -name '*.rej' -print)
-              if [ "${#rejects[@]}" -ne 1 ] || [ "${rejects[0]}" != "Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java.rej" ]; then
-                echo "Unexpected 0.6 patch rejects: ${rejects[*]}"
-                exit 1
-              fi
-            fi
-            cat afterfall-build/v060_common_events_*.b64 > afterfall-v060-common-events.b64
-            base64 --decode afterfall-v060-common-events.b64 > Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java
-            rm -f Afterfall/src/main/java/dev/afterfall/event/CommonEvents.java.rej
-            if find Afterfall -name '*.rej' -print -quit | grep -q .; then
-              echo 'Unexpected reject remains after 0.6 restore.'
-              find Afterfall -name '*.rej' -print
-              exit 1
-            fi
-            python3 afterfall-build/v060_compilefix.py
-
-            cat afterfall-build/v061m_*.b64 > afterfall-v061-script.gz.b64
-            base64 --decode afterfall-v061-script.gz.b64 > afterfall-v061-script.gz
-            gzip -dc afterfall-v061-script.gz > afterfall-v061.py
-            python3 afterfall-v061.py
-
+            python3 afterfall-build/v062_fix.py
             grep '^mod_version=' Afterfall/gradle.properties
+
             cd Afterfall
             gradle build --stacktrace
-          } 2>&1 | tee afterfall-build/output/build-v061.log
+          } 2>&1 | tee afterfall-build/output/build-v062.log
           status=${PIPESTATUS[0]}
-          echo "$status" > afterfall-build/output/build-v061-status.txt
+          echo "$status" > afterfall-build/output/build-v062-status.txt
           exit $status
 
-      - name: Publish build log, compiled jar and exact source snapshot
+      - name: Publish build, log and source snapshot
         if: always()
         shell: bash
         run: |
           mkdir -p afterfall-build/output
           if [ -d Afterfall/src/main ]; then
-            rm -rf afterfall-build/snapshot-v061
-            mkdir -p afterfall-build/snapshot-v061
-            cp -R Afterfall/src/main afterfall-build/snapshot-v061/
-            cp Afterfall/gradle.properties afterfall-build/snapshot-v061/ 2>/dev/null || true
-            cp Afterfall/build.gradle afterfall-build/snapshot-v061/ 2>/dev/null || true
+            rm -rf afterfall-build/snapshot-v062
+            mkdir -p afterfall-build/snapshot-v062
+            cp -R Afterfall/src/main afterfall-build/snapshot-v062/
+            cp Afterfall/gradle.properties afterfall-build/snapshot-v062/ 2>/dev/null || true
+            cp Afterfall/build.gradle afterfall-build/snapshot-v062/ 2>/dev/null || true
           fi
           if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
             JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
-            rm -f afterfall-build/output/Afterfall-0.6.1-NeoForge-1.21.1.jar
-            cp "$JAR" afterfall-build/output/Afterfall-0.6.1-NeoForge-1.21.1.jar
+            rm -f afterfall-build/output/Afterfall-0.6.2-NeoForge-1.21.1.jar
+            cp "$JAR" afterfall-build/output/Afterfall-0.6.2-NeoForge-1.21.1.jar
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
-          if [ -d afterfall-build/snapshot-v061 ]; then
-            git add afterfall-build/snapshot-v061/
-          fi
+          if [ -d afterfall-build/snapshot-v062 ]; then git add afterfall-build/snapshot-v062/; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish Afterfall 0.6.1 exact source snapshot'
+            git commit -m 'Publish Afterfall 0.6.2 blast door stability build'
             git push origin HEAD:afterfall-build
           fi
 
@@ -146,6 +91,6 @@ jobs:
         if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: Afterfall-0.6.1-NeoForge-1.21.1
+          name: Afterfall-0.6.2-NeoForge-1.21.1
           path: Afterfall/build/libs/*.jar
           if-no-files-found: error
