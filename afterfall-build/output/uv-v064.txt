@@ -1,0 +1,21 @@
+Afterfall 0.6.4 Blockbench UV project-resolution correction
+
+Original .bbmodel logical resolution: 32x32
+Correct Minecraft UV factor: 16/32 = 0.5
+0.6.2 already-correct texture keys left unchanged: #tex1, #tex3, #tex4
+Corrected texture keys from 0.25 -> 0.5: #tex0 (door), #tex2 (frame_top)
+Corrected faces: 36
+
+Examples:
+heavy_blast_door_closed.json element north #tex0: [0.0, 0.0, 3.0, 4.0] -> [0.0, 0.0, 6.0, 8.0]
+heavy_blast_door_closed.json element east #tex0: [0.0, 4.0, 1.0, 8.0] -> [0.0, 8.0, 2.0, 16.0]
+heavy_blast_door_closed.json element south #tex0: [3.0, 0.0, 6.0, 4.0] -> [6.0, 0.0, 12.0, 8.0]
+heavy_blast_door_closed.json element west #tex0: [1.0, 4.0, 2.0, 8.0] -> [2.0, 8.0, 4.0, 16.0]
+heavy_blast_door_closed.json element up #tex0: [5.0, 5.0, 2.0, 4.0] -> [10.0, 10.0, 4.0, 8.0]
+heavy_blast_door_closed.json element down #tex0: [5.0, 5.0, 2.0, 6.0] -> [10.0, 10.0, 4.0, 12.0]
+heavy_blast_door_closed.json element north #tex0: [3.0, 0.0, 0.0, 4.0] -> [6.0, 0.0, 0.0, 8.0]
+heavy_blast_door_closed.json element east #tex0: [2.0, 4.0, 1.0, 8.0] -> [4.0, 8.0, 2.0, 16.0]
+heavy_blast_door_closed.json element south #tex0: [6.0, 0.0, 3.0, 4.0] -> [12.0, 0.0, 6.0, 8.0]
+heavy_blast_door_closed.json element west #tex0: [1.0, 4.0, 0.0, 8.0] -> [2.0, 8.0, 0.0, 16.0]
+heavy_blast_door_closed.json element up #tex0: [2.0, 5.0, 5.0, 4.0] -> [4.0, 10.0, 10.0, 8.0]
+heavy_blast_door_closed.json element down #tex0: [2.0, 5.0, 5.0, 6.0] -> [4.0, 10.0, 10.0, 12.0]
