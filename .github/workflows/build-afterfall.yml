@@ -1,13 +1,13 @@
 name: Build Afterfall NeoForge 1.21.1
-# 0.8.0.1 operator/admin testing command suite
+# 0.8.1 passive Transfer Vent / controlled room-to-room airflow
 
 on:
   push:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/v08001_admin_test_commands.py'
-      - 'afterfall-build/v08001_trigger_*'
+      - 'afterfall-build/v081_transfer_vent.py'
+      - 'afterfall-build/v081_trigger_*'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -34,7 +34,7 @@ jobs:
         with:
           gradle-version: '9.2.1'
 
-      - name: Build Afterfall 0.8.0.1 from exact 0.8.0 snapshot
+      - name: Build Afterfall 0.8.1 from exact 0.8.0.1 snapshot
         id: build
         shell: bash
         run: |
@@ -47,18 +47,18 @@ jobs:
             unzip -q afterfall-source.zip
 
             rm -rf Afterfall/src/main
-            cp -R afterfall-build/snapshot-v080/main Afterfall/src/main
-            cp afterfall-build/snapshot-v080/gradle.properties Afterfall/gradle.properties
-            cp afterfall-build/snapshot-v080/build.gradle Afterfall/build.gradle
+            cp -R afterfall-build/snapshot-v08001/main Afterfall/src/main
+            cp afterfall-build/snapshot-v08001/gradle.properties Afterfall/gradle.properties
+            cp afterfall-build/snapshot-v08001/build.gradle Afterfall/build.gradle
 
-            python3 afterfall-build/v08001_admin_test_commands.py
+            python3 afterfall-build/v081_transfer_vent.py
             grep '^mod_version=' Afterfall/gradle.properties
 
             cd Afterfall
             gradle build --stacktrace
-          } 2>&1 | tee afterfall-build/output/build-v08001.log
+          } 2>&1 | tee afterfall-build/output/build-v081.log
           status=${PIPESTATUS[0]}
-          echo "$status" > afterfall-build/output/build-v08001-status.txt
+          echo "$status" > afterfall-build/output/build-v081-status.txt
           exit $status
 
       - name: Publish build, log and source snapshot
@@ -67,23 +67,23 @@ jobs:
         run: |
           mkdir -p afterfall-build/output
           if [ -d Afterfall/src/main ]; then
-            rm -rf afterfall-build/snapshot-v08001
-            mkdir -p afterfall-build/snapshot-v08001
-            cp -R Afterfall/src/main afterfall-build/snapshot-v08001/
-            cp Afterfall/gradle.properties afterfall-build/snapshot-v08001/ 2>/dev/null || true
-            cp Afterfall/build.gradle afterfall-build/snapshot-v08001/ 2>/dev/null || true
+            rm -rf afterfall-build/snapshot-v081
+            mkdir -p afterfall-build/snapshot-v081
+            cp -R Afterfall/src/main afterfall-build/snapshot-v081/
+            cp Afterfall/gradle.properties afterfall-build/snapshot-v081/ 2>/dev/null || true
+            cp Afterfall/build.gradle afterfall-build/snapshot-v081/ 2>/dev/null || true
           fi
           if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
             JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
-            rm -f afterfall-build/output/Afterfall-0.8.0.1-NeoForge-1.21.1.jar
-            cp "$JAR" afterfall-build/output/Afterfall-0.8.0.1-NeoForge-1.21.1.jar
+            rm -f afterfall-build/output/Afterfall-0.8.1-NeoForge-1.21.1.jar
+            cp "$JAR" afterfall-build/output/Afterfall-0.8.1-NeoForge-1.21.1.jar
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '418982343+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
-          if [ -d afterfall-build/snapshot-v08001 ]; then git add afterfall-build/snapshot-v08001/; fi
+          if [ -d afterfall-build/snapshot-v081 ]; then git add afterfall-build/snapshot-v081/; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish Afterfall 0.8.0.1 admin test commands'
+            git commit -m 'Publish Afterfall 0.8.1 Transfer Vent'
             git push origin HEAD:afterfall-build
           fi
 
@@ -91,6 +91,6 @@ jobs:
         if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: Afterfall-0.8.0.1-NeoForge-1.21.1
+          name: Afterfall-0.8.1-NeoForge-1.21.1
           path: Afterfall/build/libs/*.jar
           if-no-files-found: error
