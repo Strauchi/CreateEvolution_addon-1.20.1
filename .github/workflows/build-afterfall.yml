@@ -7,6 +7,7 @@ on:
       - afterfall-build
     paths:
       - 'afterfall-build/v072_return_mixing_fix.py'
+      - 'afterfall-build/v072_patch_hotfix.py'
       - 'afterfall-build/v072_trigger_*'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
@@ -51,6 +52,7 @@ jobs:
             cp afterfall-build/snapshot-v071/gradle.properties Afterfall/gradle.properties
             cp afterfall-build/snapshot-v071/build.gradle Afterfall/build.gradle
 
+            python3 afterfall-build/v072_patch_hotfix.py
             python3 afterfall-build/v072_return_mixing_fix.py
             grep '^mod_version=' Afterfall/gradle.properties
 
