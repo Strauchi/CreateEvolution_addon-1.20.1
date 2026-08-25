@@ -30,6 +30,6 @@ public final class Afterfall {
         modBus.addListener(ModCapabilities::register);
         NeoForge.EVENT_BUS.addListener(CommonEvents::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(CommonEvents::onRightClickBlock);
-        LOGGER.info("Afterfall 0.7.1 initialized");
+        LOGGER.info("Afterfall 0.7.2 initialized");
     }
 }
