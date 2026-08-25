@@ -1,13 +1,13 @@
 name: Build Afterfall NeoForge 1.21.1
-# 0.7.2.3 direct linked-airlock door automatic-cycle fix
+# 0.7.3 permanent intake + directional compact filter
 
 on:
   push:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/v0723_airlock_direct_door_fix.py'
-      - 'afterfall-build/v0723_trigger_*'
+      - 'afterfall-build/v073_compact_filter_intake_redesign.py'
+      - 'afterfall-build/v073_trigger_*'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -34,7 +34,7 @@ jobs:
         with:
           gradle-version: '9.2.1'
 
-      - name: Build Afterfall 0.7.2.3 from exact 0.7.2.2 snapshot
+      - name: Build Afterfall 0.7.3 from exact 0.7.2.3 snapshot
         id: build
         shell: bash
         run: |
@@ -47,18 +47,18 @@ jobs:
             unzip -q afterfall-source.zip
 
             rm -rf Afterfall/src/main
-            cp -R afterfall-build/snapshot-v0722/main Afterfall/src/main
-            cp afterfall-build/snapshot-v0722/gradle.properties Afterfall/gradle.properties
-            cp afterfall-build/snapshot-v0722/build.gradle Afterfall/build.gradle
+            cp -R afterfall-build/snapshot-v0723/main Afterfall/src/main
+            cp afterfall-build/snapshot-v0723/gradle.properties Afterfall/gradle.properties
+            cp afterfall-build/snapshot-v0723/build.gradle Afterfall/build.gradle
 
-            python3 afterfall-build/v0723_airlock_direct_door_fix.py
+            python3 afterfall-build/v073_compact_filter_intake_redesign.py
             grep '^mod_version=' Afterfall/gradle.properties
 
             cd Afterfall
             gradle build --stacktrace
-          } 2>&1 | tee afterfall-build/output/build-v0723.log
+          } 2>&1 | tee afterfall-build/output/build-v073.log
           status=${PIPESTATUS[0]}
-          echo "$status" > afterfall-build/output/build-v0723-status.txt
+          echo "$status" > afterfall-build/output/build-v073-status.txt
           exit $status
 
       - name: Publish build, log and source snapshot
@@ -67,23 +67,23 @@ jobs:
         run: |
           mkdir -p afterfall-build/output
           if [ -d Afterfall/src/main ]; then
-            rm -rf afterfall-build/snapshot-v0723
-            mkdir -p afterfall-build/snapshot-v0723
-            cp -R Afterfall/src/main afterfall-build/snapshot-v0723/
-            cp Afterfall/gradle.properties afterfall-build/snapshot-v0723/ 2>/dev/null || true
-            cp Afterfall/build.gradle afterfall-build/snapshot-v0723/ 2>/dev/null || true
+            rm -rf afterfall-build/snapshot-v073
+            mkdir -p afterfall-build/snapshot-v073
+            cp -R Afterfall/src/main afterfall-build/snapshot-v073/
+            cp Afterfall/gradle.properties afterfall-build/snapshot-v073/ 2>/dev/null || true
+            cp Afterfall/build.gradle afterfall-build/snapshot-v073/ 2>/dev/null || true
           fi
           if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
             JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
-            rm -f afterfall-build/output/Afterfall-0.7.2.3-NeoForge-1.21.1.jar
-            cp "$JAR" afterfall-build/output/Afterfall-0.7.2.3-NeoForge-1.21.1.jar
+            rm -f afterfall-build/output/Afterfall-0.7.3-NeoForge-1.21.1.jar
+            cp "$JAR" afterfall-build/output/Afterfall-0.7.3-NeoForge-1.21.1.jar
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '418982343+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
-          if [ -d afterfall-build/snapshot-v0723 ]; then git add afterfall-build/snapshot-v0723/; fi
+          if [ -d afterfall-build/snapshot-v073 ]; then git add afterfall-build/snapshot-v073/; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish Afterfall 0.7.2.3 direct airlock door fix'
+            git commit -m 'Publish Afterfall 0.7.3 compact filter and intake build'
             git push origin HEAD:afterfall-build
           fi
 
@@ -91,6 +91,6 @@ jobs:
         if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: Afterfall-0.7.2.3-NeoForge-1.21.1
+          name: Afterfall-0.7.3-NeoForge-1.21.1
           path: Afterfall/build/libs/*.jar
           if-no-files-found: error
