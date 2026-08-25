@@ -1,0 +1,22 @@
+{
+  "itemGroup.afterfall": "Afterfall",
+  "item.afterfall.geiger_counter": "Geigerzähler",
+  "item.afterfall.radaway": "RadAway",
+  "item.afterfall.decon_kit": "Dekontaminations-Kit",
+  "block.afterfall.lead_composite_block": "Blei-Verbundblock",
+  "block.afterfall.radioactive_waste_block": "Radioaktiver Abfall",
+  "block.afterfall.ash_block": "Ascheblock",
+  "generator.afterfall.wasteland": "Afterfall Ödland",
+  "block.afterfall.air_filter_unit": "Luftfilteranlage",
+  "block.afterfall.air_intake_unit": "Gefilterte Frischluftzufuhr",
+  "block.afterfall.airlock_controller": "Schleusensteuerung",
+  "block.afterfall.airlock_call_panel": "Schleusen-Rufpanel",
+  "item.afterfall.prefilter_cartridge": "Staub-Vorfilterkartusche",
+  "item.afterfall.hepa_filter_cartridge": "HEPA-Filterkartusche",
+  "item.afterfall.rad_filter_cartridge": "Radiologische Filterkartusche",
+  "block.afterfall.emergency_generator": "Notfall-FE-Generator",
+  "block.afterfall.sealed_airlock_door": "Versiegelte Schleusentür",
+  "block.afterfall.heavy_blast_door": "Schwere Bunkertür",
+  "block.afterfall.air_vent": "Lüftungsventil",
+  "block.afterfall.ventilation_fan": "Hauptlüfter"
+}
