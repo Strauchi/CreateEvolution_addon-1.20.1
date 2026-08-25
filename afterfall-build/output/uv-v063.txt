@@ -1,0 +1,10 @@
+Afterfall 0.6.3 Heavy Blast Door UV normalization
+
+heavy_blast_door_doorpinstexture.png: 32x32 | UV factors U=0.500000, V=0.500000
+heavy_blast_door_doortexture.png: 64x64 | UV factors U=0.250000, V=0.250000
+heavy_blast_door_frame_left.png: 32x32 | UV factors U=0.500000, V=0.500000
+heavy_blast_door_frame_right.png: 32x32 | UV factors U=0.500000, V=0.500000
+heavy_blast_door_frame_top.png: 64x64 | UV factors U=0.250000, V=0.250000
+
+Changed models: heavy_blast_door_closed.json, heavy_blast_door_frame.json, heavy_blast_door_left.json, heavy_blast_door_right.json
+Changed faces: 132
