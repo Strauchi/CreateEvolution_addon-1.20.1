@@ -1,3 +1,2 @@
 Afterfall 0.9.2.3 QoL: sneak-right-click bypasses GUI machines for block/pipe placement.
-Trigger build after workflow update.
-Retry after GitHub Actions startup failure.
+Trigger dedicated 0.9.2.3 workflow after GitHub Actions startup failures.
