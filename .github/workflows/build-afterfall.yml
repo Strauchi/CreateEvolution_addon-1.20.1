@@ -1,13 +1,13 @@
 name: Build Afterfall NeoForge 1.21.1
-# 0.9.1.1 Power output + bidirectional sealed feedthrough fixes
+# 0.9.1.2 Active bidirectional sealed power feedthrough bridge
 
 on:
   push:
     branches:
       - afterfall-build
     paths:
-      - 'afterfall-build/v0911_power_output_feedthrough_fix.py'
-      - 'afterfall-build/v0911_trigger_*'
+      - 'afterfall-build/v0912_feedthrough_active_bridge.py'
+      - 'afterfall-build/v0912_trigger_*'
       - '.github/workflows/build-afterfall.yml'
   workflow_dispatch:
 
@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: afterfall-build-v0911
+  group: afterfall-build-v0912
   cancel-in-progress: false
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
         with:
           gradle-version: '9.2.1'
 
-      - name: Build Afterfall 0.9.1.1 Power and Feedthrough fixes from exact 0.9.1 snapshot
+      - name: Build Afterfall 0.9.1.2 active feedthrough bridge from exact 0.9.1.1 snapshot
         id: build
         shell: bash
         run: |
@@ -51,18 +51,18 @@ jobs:
             unzip -q afterfall-source.zip
 
             rm -rf Afterfall/src/main
-            cp -R afterfall-build/snapshot-v091/main Afterfall/src/main
-            cp afterfall-build/snapshot-v091/gradle.properties Afterfall/gradle.properties
-            cp afterfall-build/snapshot-v091/build.gradle Afterfall/build.gradle
+            cp -R afterfall-build/snapshot-v0911/main Afterfall/src/main
+            cp afterfall-build/snapshot-v0911/gradle.properties Afterfall/gradle.properties
+            cp afterfall-build/snapshot-v0911/build.gradle Afterfall/build.gradle
 
-            python3 afterfall-build/v0911_power_output_feedthrough_fix.py
+            python3 afterfall-build/v0912_feedthrough_active_bridge.py
             grep '^mod_version=' Afterfall/gradle.properties
 
             cd Afterfall
             gradle build --stacktrace
-          } 2>&1 | tee afterfall-build/output/build-v0911.log
+          } 2>&1 | tee afterfall-build/output/build-v0912.log
           status=${PIPESTATUS[0]}
-          echo "$status" > afterfall-build/output/build-v0911-status.txt
+          echo "$status" > afterfall-build/output/build-v0912-status.txt
           exit $status
 
       - name: Publish build, log and source snapshot
@@ -71,23 +71,23 @@ jobs:
         run: |
           mkdir -p afterfall-build/output
           if [ -d Afterfall/src/main ]; then
-            rm -rf afterfall-build/snapshot-v0911
-            mkdir -p afterfall-build/snapshot-v0911
-            cp -R Afterfall/src/main afterfall-build/snapshot-v0911/
-            cp Afterfall/gradle.properties afterfall-build/snapshot-v0911/ 2>/dev/null || true
-            cp Afterfall/build.gradle afterfall-build/snapshot-v0911/ 2>/dev/null || true
+            rm -rf afterfall-build/snapshot-v0912
+            mkdir -p afterfall-build/snapshot-v0912
+            cp -R Afterfall/src/main afterfall-build/snapshot-v0912/
+            cp Afterfall/gradle.properties afterfall-build/snapshot-v0912/ 2>/dev/null || true
+            cp Afterfall/build.gradle afterfall-build/snapshot-v0912/ 2>/dev/null || true
           fi
           if find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | grep -q .; then
             JAR="$(find Afterfall/build/libs -maxdepth 1 -name 'afterfall-*.jar' -type f | head -n 1)"
-            rm -f afterfall-build/output/Afterfall-0.9.1.1-NeoForge-1.21.1.jar
-            cp "$JAR" afterfall-build/output/Afterfall-0.9.1.1-NeoForge-1.21.1.jar
+            rm -f afterfall-build/output/Afterfall-0.9.1.2-NeoForge-1.21.1.jar
+            cp "$JAR" afterfall-build/output/Afterfall-0.9.1.2-NeoForge-1.21.1.jar
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '418982343+github-actions[bot]@users.noreply.github.com'
           git add afterfall-build/output/
-          if [ -d afterfall-build/snapshot-v0911 ]; then git add afterfall-build/snapshot-v0911/; fi
+          if [ -d afterfall-build/snapshot-v0912 ]; then git add afterfall-build/snapshot-v0912/; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish Afterfall 0.9.1.1 power and feedthrough fixes'
+            git commit -m 'Publish Afterfall 0.9.1.2 active feedthrough bridge'
             git pull --rebase origin afterfall-build
             git push origin HEAD:afterfall-build
           fi
@@ -96,6 +96,6 @@ jobs:
         if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: Afterfall-0.9.1.1-NeoForge-1.21.1
+          name: Afterfall-0.9.1.2-NeoForge-1.21.1
           path: Afterfall/build/libs/*.jar
           if-no-files-found: error
