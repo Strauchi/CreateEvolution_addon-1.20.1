@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": {"model": "afterfall:block/emergency_power_bank"},
+    "facing=east":  {"model": "afterfall:block/emergency_power_bank", "y": 90},
+    "facing=south": {"model": "afterfall:block/emergency_power_bank", "y": 180},
+    "facing=west":  {"model": "afterfall:block/emergency_power_bank", "y": 270}
+  }
+}
