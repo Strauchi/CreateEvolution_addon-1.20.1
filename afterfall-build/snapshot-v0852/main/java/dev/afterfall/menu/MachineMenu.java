@@ -1,0 +1,559 @@
+package dev.afterfall.menu;
+
+import dev.afterfall.blockentity.AirFilterBlockEntity;
+import dev.afterfall.blockentity.AirIntakeBlockEntity;
+import dev.afterfall.blockentity.AirlockControllerBlockEntity;
+import dev.afterfall.blockentity.AirlockLogic;
+import dev.afterfall.blockentity.Co2ScrubberBlockEntity;
+import dev.afterfall.blockentity.EmergencyGeneratorBlockEntity;
+import dev.afterfall.blockentity.VentilationFanBlockEntity;
+import dev.afterfall.content.ModItems;
+import dev.afterfall.content.ModMenus;
+import dev.afterfall.machine.FilterBank;
+import dev.afterfall.machine.MachinePower;
+import dev.afterfall.room.AirTreatmentNetwork;
+import dev.afterfall.room.RoomAtmosphere;
+import dev.afterfall.room.RoomAtmosphereSavedData;
+import dev.afterfall.room.RoomEnvironmentManager;
+import dev.afterfall.room.IntakeNetworkScanner;
+import dev.afterfall.room.RoomMachineUtil;
+import dev.afterfall.room.RoomScanResult;
+import dev.afterfall.room.VentilationNetworkScanner;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+
+public final class MachineMenu extends AbstractContainerMenu {
+    public static final int DATA_COUNT = 50;
+
+    public static final int TYPE_FILTER = 0;
+    public static final int TYPE_INTAKE = 1;
+    public static final int TYPE_AIRLOCK = 2;
+    public static final int TYPE_GENERATOR = 3;
+    public static final int TYPE_FAN = 4;
+    public static final int TYPE_SCRUBBER = 5;
+
+    public static final int BUTTON_POWER = 0;
+    public static final int BUTTON_ACTION = 1;
+    public static final int BUTTON_INTAKE_OPEN = 2;
+    public static final int BUTTON_INTAKE_CLOSED = 3;
+    public static final int BUTTON_INTAKE_AUTO = 4;
+
+    public static final int D_TYPE = 0;
+    public static final int D_ENERGY = 1;
+    public static final int D_ENERGY_MAX = 2;
+    public static final int D_STATUS = 3;
+    public static final int D_PRE = 4;
+    public static final int D_HEPA = 5;
+    public static final int D_RAD = 6;
+    public static final int D_ROOM_VOLUME = 7;
+    public static final int D_DUST_X100 = 8;
+    public static final int D_AIR_RAD_X100 = 9;
+    public static final int D_O2_X100 = 10;
+    public static final int D_CO2_X100 = 11;
+    public static final int D_AIR_QUALITY_X10 = 12;
+    public static final int D_FLOW_X10 = 13;
+    public static final int D_EXTRA = 14;
+    public static final int D_POWER_SOURCE = 15;
+    public static final int D_FILTER_CONDITION = 16;
+    public static final int D_ENABLED = 17;
+    public static final int D_RETURN_VENTS = 18;
+    public static final int D_SUPPLY_FLOW_X10 = 19;
+    public static final int D_RETURN_FLOW_X10 = 20;
+    public static final int D_INTAKE_TOTAL = 21;
+    public static final int D_INTAKE_READY = 22;
+    public static final int D_INTAKE_INPUT_X10 = 23;
+    public static final int D_INTAKE_CAPACITY_X10 = 24;
+    public static final int D_INPUT_ROOM_VOLUME = 25;
+    public static final int D_INPUT_DUST_X100 = 26;
+    public static final int D_INPUT_AIR_RAD_X100 = 27;
+    public static final int D_IND_PRE = 28;
+    public static final int D_IND_HEPA = 29;
+    public static final int D_IND_RAD = 30;
+    public static final int D_IND_CAPACITY_X10 = 31;
+    public static final int D_INTAKE_DEMAND_X10 = 32;
+    public static final int D_TRANSFER_VENTS = 33;
+    public static final int D_TRANSFER_CAPACITY_X10 = 34;
+    public static final int D_INTAKE_MODE = 35;
+    public static final int D_FALLOUT_CONDITION = 36;
+    public static final int D_FALLOUT_LOAD_PERCENT = 37;
+    public static final int D_OUTSIDE_DUST_X100 = 38;
+    public static final int D_OUTSIDE_RAD_X100 = 39;
+    public static final int D_INTAKE_AUTO_ISOLATED = 40;
+    public static final int D_INTAKE_UNIT_FLOW_X10 = 41;
+    public static final int D_INTAKE_AUTO_THRESHOLD_PERCENT = 42;
+    public static final int D_SCRUBBER_INPUT_CO2_X1000 = 43;
+    public static final int D_SCRUBBER_OUTPUT_CO2_X1000 = 44;
+    public static final int D_SCRUBBER_ACTUAL_EQ_X100 = 45;
+    public static final int D_SCRUBBER_REMOVAL_PER_MIN_X100000 = 46;
+    public static final int D_SCRUBBER_ENERGY_USE = 47;
+    public static final int D_SCRUBBER_ACTUAL_FLOW_X10 = 48;
+    public static final int D_SCRUBBER_NOMINAL_EQ_X100 = 49;
+
+    public static final int FILTER_SLOT_Y = 95;
+    public static final int[] FILTER_SLOT_X = {24, 104, 184};
+    public static final int FUEL_SLOT_X = 24;
+    public static final int FUEL_SLOT_Y = 95;
+    public static final int PLAYER_INV_X = 41;
+    public static final int PLAYER_INV_Y = 220;
+    public static final int HOTBAR_Y = 280;
+
+    private final SimpleContainerData data = new SimpleContainerData(DATA_COUNT);
+    private final BlockPos blockPos;
+    private final BlockEntity serverBlockEntity;
+    private final int machineType;
+    private final int machineSlotCount;
+
+    public MachineMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf buf) {
+        this(containerId, inventory, buf.readBlockPos(), null, buf.readVarInt());
+    }
+
+    public MachineMenu(int containerId, Inventory inventory, BlockPos pos, BlockEntity blockEntity) {
+        this(containerId, inventory, pos, blockEntity, typeOf(blockEntity));
+    }
+
+    private MachineMenu(int containerId, Inventory inventory, BlockPos pos, BlockEntity blockEntity, int machineType) {
+        super(ModMenus.MACHINE.get(), containerId);
+        this.blockPos = pos.immutable();
+        this.serverBlockEntity = blockEntity;
+        this.machineType = machineType;
+        this.machineSlotCount = machineType == TYPE_GENERATOR ? 1
+                : ((machineType == TYPE_FAN || machineType == TYPE_INTAKE || machineType == TYPE_SCRUBBER) ? 0 : 3);
+
+        IItemHandler machineHandler = handlerFor(blockEntity, machineType);
+        if (machineType == TYPE_GENERATOR) {
+            addSlot(new SlotItemHandler(machineHandler, 0, FUEL_SLOT_X, FUEL_SLOT_Y));
+        } else if (machineType == TYPE_FILTER || machineType == TYPE_AIRLOCK) {
+            for (int i = 0; i < 3; i++) addSlot(new SlotItemHandler(machineHandler, i, FILTER_SLOT_X[i], FILTER_SLOT_Y));
+        }
+
+        // Player inventory 3x9 + hotbar.
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                addSlot(new Slot(inventory, col + row * 9 + 9,
+                        PLAYER_INV_X + col * 18, PLAYER_INV_Y + row * 18));
+            }
+        }
+        for (int col = 0; col < 9; col++) {
+            addSlot(new Slot(inventory, col, PLAYER_INV_X + col * 18, HOTBAR_Y));
+        }
+
+        addDataSlots(data);
+        if (serverBlockEntity != null) updateServerData();
+    }
+
+    public static int typeOf(BlockEntity blockEntity) {
+        if (blockEntity instanceof AirIntakeBlockEntity) return TYPE_INTAKE;
+        if (blockEntity instanceof AirlockControllerBlockEntity) return TYPE_AIRLOCK;
+        if (blockEntity instanceof EmergencyGeneratorBlockEntity) return TYPE_GENERATOR;
+        if (blockEntity instanceof VentilationFanBlockEntity) return TYPE_FAN;
+        if (blockEntity instanceof Co2ScrubberBlockEntity) return TYPE_SCRUBBER;
+        return TYPE_FILTER;
+    }
+
+    private static IItemHandler handlerFor(BlockEntity blockEntity, int type) {
+        if (blockEntity instanceof AirFilterBlockEntity be) return be.filters();
+        if (blockEntity instanceof AirIntakeBlockEntity) return new ItemStackHandler(0);
+        if (blockEntity instanceof AirlockControllerBlockEntity be) return be.filters();
+        if (blockEntity instanceof EmergencyGeneratorBlockEntity be) return be.inventory();
+        if (blockEntity instanceof VentilationFanBlockEntity) return new ItemStackHandler(0);
+        if (blockEntity instanceof Co2ScrubberBlockEntity) return new ItemStackHandler(0);
+        if (type == TYPE_INTAKE || type == TYPE_FAN || type == TYPE_SCRUBBER) return new ItemStackHandler(0);
+        if (type == TYPE_GENERATOR) {
+            return new ItemStackHandler(1) {
+                @Override public boolean isItemValid(int slot, ItemStack stack) {
+                    return slot == 0 && EmergencyGeneratorBlockEntity.isFuel(stack);
+                }
+            };
+        }
+        return new FilterBank(null);
+    }
+
+    @Override
+    public void broadcastChanges() {
+        if (serverBlockEntity != null) updateServerData();
+        super.broadcastChanges();
+    }
+
+    private void updateServerData() {
+        if (!(serverBlockEntity.getLevel() instanceof ServerLevel level)) return;
+        for (int i = 0; i < DATA_COUNT; i++) data.set(i, 0);
+
+        if (serverBlockEntity instanceof AirFilterBlockEntity be) {
+            data.set(D_TYPE, TYPE_FILTER);
+            data.set(D_ENABLED, be.enabled() ? 1 : 0);
+            setEnergy(be.energyStorage().getEnergyStored(), be.energyStorage().getMaxEnergyStored());
+            setFilters(be.filters().prefilterFraction(), be.filters().hepaFraction(), be.filters().radiologicalFraction(), be.filters().conditionLabel());
+            data.set(D_FLOW_X10, scale(AirFilterBlockEntity.FLOW_M3_PER_SECOND, 10.0D));
+            RoomScanResult input = be.inspectInput(level);
+            RoomScanResult output = be.inspectOutput(level);
+            RoomAtmosphere inputAir = input == null ? null : atmosphere(level, input);
+            RoomAtmosphere outputAir = output == null ? null : atmosphere(level, output);
+            if (input != null && inputAir != null) {
+                data.set(D_INPUT_ROOM_VOLUME, input.volume());
+                data.set(D_INPUT_DUST_X100, scale(inputAir.dustPercent(), 100.0D));
+                data.set(D_INPUT_AIR_RAD_X100, scale(inputAir.airborneRadiationPerSecond() * 3600.0D, 100.0D));
+            }
+            if (output != null && outputAir != null) setAtmosphere(output, outputAir);
+
+            if (!be.enabled()) data.set(D_STATUS, 17);
+            else if (!MachinePower.available(level, blockPos, be.energyStorage(), AirFilterBlockEntity.ENERGY_PER_SECOND)) data.set(D_STATUS, 1);
+            else if (input == null) data.set(D_STATUS, 34);
+            else if (output == null) data.set(D_STATUS, 35);
+            else if (input.anchor().equals(output.anchor())) data.set(D_STATUS, 36);
+            else if (!be.filters().complete()) data.set(D_STATUS, 3);
+            else data.set(D_STATUS, AirFilterBlockEntity.needsProcessing(inputAir, outputAir) ? 4 : 5);
+            data.set(D_POWER_SOURCE, powerSource(level, blockPos, be.energyStorage()));
+            return;
+        }
+
+        if (serverBlockEntity instanceof AirIntakeBlockEntity be) {
+            data.set(D_TYPE, TYPE_INTAKE);
+            data.set(D_ENABLED, be.enabled() ? 1 : 0);
+            setEnergy(be.energyStorage().getEnergyStored(), be.energyStorage().getMaxEnergyStored());
+            data.set(D_PRE, scale(AirIntakeBlockEntity.PERMANENT_DUST_EFFICIENCY * 100.0D, 10.0D));
+            data.set(D_RAD, scale(AirIntakeBlockEntity.PERMANENT_RADIATION_EFFICIENCY * 100.0D, 10.0D));
+            data.set(D_FLOW_X10, scale(AirIntakeBlockEntity.FLOW_M3_PER_SECOND, 10.0D));
+
+            RoomEnvironmentManager.FalloutCondition fallout = RoomEnvironmentManager.falloutCondition(level, blockPos);
+            data.set(D_INTAKE_MODE, be.mode().ordinal());
+            data.set(D_FALLOUT_CONDITION, fallout.ordinal());
+            data.set(D_FALLOUT_LOAD_PERCENT, scale(fallout.loadMultiplier() * 100.0D, 1.0D));
+            data.set(D_OUTSIDE_DUST_X100, scale(RoomEnvironmentManager.intakeOutsideDust(level, blockPos), 100.0D));
+            data.set(D_OUTSIDE_RAD_X100, scale(RoomEnvironmentManager.intakeOutsideAirborneRadiation(level, blockPos) * 3600.0D, 100.0D));
+            data.set(D_INTAKE_AUTO_ISOLATED, be.autoIsolated(level, blockPos) ? 1 : 0);
+            data.set(D_INTAKE_UNIT_FLOW_X10, scale(be.currentFlowM3PerSecond(), 10.0D));
+            data.set(D_INTAKE_AUTO_THRESHOLD_PERCENT, scale(AirIntakeBlockEntity.AUTO_ISOLATION_LOAD * 100.0D, 1.0D));
+
+            RoomMachineUtil.IntakeConnection connection = RoomMachineUtil.findIntakeConnection(level, blockPos);
+            RoomScanResult scan = connection.room();
+            if (!be.enabled()) data.set(D_STATUS, 17);
+            else if (be.mode() == AirIntakeBlockEntity.IntakeMode.CLOSED) data.set(D_STATUS, 37);
+            else if (be.autoIsolated(level, blockPos)) data.set(D_STATUS, 38);
+            else if (!MachinePower.available(level, blockPos, be.energyStorage(), AirIntakeBlockEntity.ENERGY_PER_SECOND)) data.set(D_STATUS, 1);
+            else if (scan == null) data.set(D_STATUS, 2);
+            else if (!connection.outsideConnected()) data.set(D_STATUS, 6);
+            else {
+                RoomAtmosphere atmosphere = atmosphere(level, scan);
+                data.set(D_STATUS, be.currentFlowM3PerSecond() > 0.01D ? 7 : 5);
+                setAtmosphere(scan, atmosphere);
+            }
+            if (scan != null) {
+                if (get(D_ROOM_VOLUME) == 0) setAtmosphere(scan, atmosphere(level, scan));
+                setIntakeStats(IntakeNetworkScanner.inspect(level, scan));
+            }
+            data.set(D_POWER_SOURCE, powerSource(level, blockPos, be.energyStorage()));
+            return;
+        }
+
+
+        if (serverBlockEntity instanceof Co2ScrubberBlockEntity be) {
+            data.set(D_TYPE, TYPE_SCRUBBER);
+            data.set(D_ENABLED, be.enabled() ? 1 : 0);
+            setEnergy(be.energyStorage().getEnergyStored(), be.energyStorage().getMaxEnergyStored());
+            data.set(D_FLOW_X10, scale(Co2ScrubberBlockEntity.FLOW_M3_PER_SECOND, 10.0D));
+            data.set(D_SCRUBBER_NOMINAL_EQ_X100, scale(Co2ScrubberBlockEntity.PLAYER_EQUIVALENT_CAPACITY, 100.0D));
+            data.set(D_SCRUBBER_ACTUAL_EQ_X100, scale(be.recentActualPlayerEquivalent(level), 100.0D));
+            data.set(D_SCRUBBER_REMOVAL_PER_MIN_X100000,
+                    scale(be.recentRemovedCo2PerSecond(level) * 60.0D, 100000.0D));
+            data.set(D_SCRUBBER_ENERGY_USE, be.recentEnergyUse(level));
+            data.set(D_SCRUBBER_ACTUAL_FLOW_X10, scale(be.recentFlowM3PerSecond(level), 10.0D));
+
+            RoomScanResult input = be.inspectInput(level);
+            RoomScanResult output = be.inspectOutput(level);
+            RoomAtmosphere inputAir = input == null ? null : atmosphere(level, input);
+            RoomAtmosphere outputAir = output == null ? null : atmosphere(level, output);
+
+            if (input != null && inputAir != null) {
+                data.set(D_INPUT_ROOM_VOLUME, input.volume());
+                data.set(D_SCRUBBER_INPUT_CO2_X1000, scale(inputAir.co2Percent(), 1000.0D));
+            }
+            if (output != null && outputAir != null) {
+                setAtmosphere(output, outputAir);
+                data.set(D_SCRUBBER_OUTPUT_CO2_X1000, scale(outputAir.co2Percent(), 1000.0D));
+            }
+
+            if (!be.enabled()) data.set(D_STATUS, 17);
+            else if (!MachinePower.available(level, blockPos, be.energyStorage(), 1)) data.set(D_STATUS, 1);
+            else if (input == null) data.set(D_STATUS, 34);
+            else if (output == null) data.set(D_STATUS, 35);
+            else if (input.anchor().equals(output.anchor())) data.set(D_STATUS, 36);
+            else if (be.recentActualPlayerEquivalent(level) > 0.0001D) data.set(D_STATUS, 8);
+            else if (outputAir != null && outputAir.co2Percent() <= RoomAtmosphere.NORMAL_CO2 + 0.000001D) data.set(D_STATUS, 5);
+            else data.set(D_STATUS, 39);
+
+            data.set(D_POWER_SOURCE, powerSource(level, blockPos, be.energyStorage()));
+            return;
+        }
+
+        if (serverBlockEntity instanceof AirlockControllerBlockEntity be) {
+            data.set(D_TYPE, TYPE_AIRLOCK);
+            data.set(D_ENABLED, be.enabled() ? 1 : 0);
+            setEnergy(be.energyStorage().getEnergyStored(), be.energyStorage().getMaxEnergyStored());
+            setFilters(be.filters().prefilterFraction(), be.filters().hepaFraction(), be.filters().radiologicalFraction(), be.filters().conditionLabel());
+            data.set(D_EXTRA, be.cycleState().ordinal());
+            AirlockLogic.AirlockStatus status = AirlockLogic.inspectStatus(level, blockPos);
+            data.set(D_STATUS, !be.enabled() ? 17 : airlockStatusCode(be, status));
+            if (status.hasAtmosphere()) setAtmosphere(status.scan(), status.atmosphere());
+            data.set(D_POWER_SOURCE, powerSource(level, blockPos, be.energyStorage()));
+            return;
+        }
+
+
+        if (serverBlockEntity instanceof VentilationFanBlockEntity be) {
+            data.set(D_TYPE, TYPE_FAN);
+            data.set(D_ENABLED, be.enabled() ? 1 : 0);
+            setEnergy(be.energyStorage().getEnergyStored(), be.energyStorage().getMaxEnergyStored());
+            VentilationNetworkScanner.Network network = be.inspectNetwork(level);
+            RoomScanResult inlet = be.inspectInlet(level);
+            int supplyVents = be.connectedSupplyVentCount(level);
+            int returnVents = be.connectedReturnVentCount(level);
+            data.set(D_EXTRA, supplyVents);
+            data.set(D_RETURN_VENTS, returnVents);
+            data.set(D_FLOW_X10, scale(be.availableNetworkFlow(level), 10.0D));
+            data.set(D_SUPPLY_FLOW_X10, scale(be.currentSupplyFlow(level), 10.0D));
+            data.set(D_RETURN_FLOW_X10, scale(be.currentReturnFlow(level), 10.0D));
+            if (inlet != null) {
+                setIntakeStats(IntakeNetworkScanner.inspectUpstream(level, inlet));
+                AirTreatmentNetwork.Network treatment = AirTreatmentNetwork.trace(level, inlet);
+                data.set(D_IND_PRE, treatment.preBlocks());
+                data.set(D_IND_HEPA, treatment.hepaBlocks());
+                data.set(D_IND_RAD, treatment.radBlocks());
+                data.set(D_IND_CAPACITY_X10, scale(treatment.bottleneckCapacity(), 10.0D));
+                data.set(D_TRANSFER_VENTS, treatment.transferVentCount());
+                data.set(D_TRANSFER_CAPACITY_X10, scale(treatment.transferBottleneckCapacity(), 10.0D));
+            }
+            if (network != null && network.valid()) {
+                RoomAtmosphere shaftAir = atmosphere(level, network.shaft());
+                setAtmosphere(network.shaft(), shaftAir);
+            }
+            if (!be.enabled()) data.set(D_STATUS, 17);
+            else if (network == null || !network.valid()) data.set(D_STATUS, 30);
+            else if (inlet == null || inlet.anchor().equals(network.shaft().anchor())) data.set(D_STATUS, 33);
+            else if (!MachinePower.available(level, blockPos, be.energyStorage(), VentilationFanBlockEntity.ENERGY_PER_SECOND)) data.set(D_STATUS, 1);
+            else if (supplyVents == 0) data.set(D_STATUS, 31);
+            else data.set(D_STATUS, 32);
+            data.set(D_POWER_SOURCE, powerSource(level, blockPos, be.energyStorage()));
+            return;
+        }
+
+        if (serverBlockEntity instanceof EmergencyGeneratorBlockEntity be) {
+            data.set(D_TYPE, TYPE_GENERATOR);
+            data.set(D_ENABLED, be.enabled() ? 1 : 0);
+            setEnergy(be.energyStorage().getEnergyStored(), be.energyStorage().getMaxEnergyStored());
+            data.set(D_STATUS, !be.enabled() ? 17 : (be.burnTicks() > 0 ? 8 : (be.energyStorage().getEnergyStored() > 0 ? 9 : 10)));
+            data.set(D_FLOW_X10, EmergencyGeneratorBlockEntity.GENERATION_PER_TICK * 10);
+            data.set(D_EXTRA, be.burnTicks());
+            data.set(D_POWER_SOURCE, 3);
+        }
+    }
+
+    private int airlockStatusCode(AirlockControllerBlockEntity be, AirlockLogic.AirlockStatus status) {
+        if (be.isBusy()) return 20 + be.cycleState().ordinal();
+        return switch (status.type()) {
+            case NOT_CONFIGURED -> 11;
+            case DOOR_OPEN -> 12;
+            case NO_SEALED_CHAMBER -> 13;
+            case CHAMBER_TOO_LARGE -> 14;
+            case UNSAFE_NO_POWER -> 1;
+            case FILTER_REQUIRED -> 3;
+            case SAFE -> 16;
+            default -> 15;
+        };
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (!(player instanceof ServerPlayer serverPlayer) || serverBlockEntity == null
+                || !(serverBlockEntity.getLevel() instanceof ServerLevel level)) return false;
+
+        if (id == BUTTON_POWER) {
+            if (serverBlockEntity instanceof AirFilterBlockEntity be) be.setEnabled(!be.enabled());
+            else if (serverBlockEntity instanceof AirIntakeBlockEntity be) be.setEnabled(!be.enabled());
+            else if (serverBlockEntity instanceof EmergencyGeneratorBlockEntity be) be.setEnabled(!be.enabled());
+            else if (serverBlockEntity instanceof VentilationFanBlockEntity be) be.setEnabled(!be.enabled());
+            else if (serverBlockEntity instanceof Co2ScrubberBlockEntity be) be.setEnabled(!be.enabled());
+            else if (serverBlockEntity instanceof AirlockControllerBlockEntity be) {
+                if (!be.setEnabled(!be.enabled())) {
+                    serverPlayer.displayClientMessage(Component.literal("AIRLOCK: CANNOT POWER OFF DURING ACTIVE CYCLE"), true);
+                    return false;
+                }
+            } else return false;
+            updateServerData();
+            return true;
+        }
+
+        if (serverBlockEntity instanceof AirIntakeBlockEntity be) {
+            AirIntakeBlockEntity.IntakeMode requested = switch (id) {
+                case BUTTON_INTAKE_OPEN -> AirIntakeBlockEntity.IntakeMode.OPEN;
+                case BUTTON_INTAKE_CLOSED -> AirIntakeBlockEntity.IntakeMode.CLOSED;
+                case BUTTON_INTAKE_AUTO -> AirIntakeBlockEntity.IntakeMode.AUTO;
+                default -> null;
+            };
+            if (requested != null) {
+                be.setMode(requested);
+                updateServerData();
+                return true;
+            }
+        }
+
+        if (id == BUTTON_ACTION && serverBlockEntity instanceof AirlockControllerBlockEntity be) {
+            if (!be.enabled()) {
+                serverPlayer.displayClientMessage(Component.literal("AIRLOCK: CONTROLLER IS SWITCHED OFF"), true);
+                return false;
+            }
+            return be.requestFromController(level, serverPlayer);
+        }
+        return false;
+    }
+
+    private void setEnergy(int stored, int max) {
+        data.set(D_ENERGY, stored / 10);
+        data.set(D_ENERGY_MAX, Math.max(1, max / 10));
+    }
+
+    private void setFilters(double pre, double hepa, double rad, String condition) {
+        data.set(D_PRE, scale(pre * 100.0D, 10.0D));
+        data.set(D_HEPA, scale(hepa * 100.0D, 10.0D));
+        data.set(D_RAD, scale(rad * 100.0D, 10.0D));
+        data.set(D_FILTER_CONDITION, switch (condition) {
+            case "EXHAUSTED" -> 3;
+            case "CRITICAL" -> 2;
+            case "DEGRADED" -> 1;
+            default -> 0;
+        });
+    }
+
+    private void setIntakeStats(IntakeNetworkScanner.Stats stats) {
+        data.set(D_INTAKE_TOTAL, stats.totalIntakes());
+        data.set(D_INTAKE_READY, stats.readyIntakes());
+        data.set(D_INTAKE_INPUT_X10, scale(stats.currentInput(), 10.0D));
+        data.set(D_INTAKE_CAPACITY_X10, scale(stats.readyCapacity(), 10.0D));
+        data.set(D_INTAKE_DEMAND_X10, scale(stats.freshAirDemand(), 10.0D));
+    }
+
+    private void setAtmosphere(RoomScanResult scan, RoomAtmosphere atmosphere) {
+        data.set(D_ROOM_VOLUME, scan.volume());
+        data.set(D_DUST_X100, scale(atmosphere.dustPercent(), 100.0D));
+        data.set(D_AIR_RAD_X100, scale(atmosphere.airborneRadiationPerSecond() * 3600.0D, 100.0D));
+        data.set(D_O2_X100, scale(atmosphere.oxygenPercent(), 100.0D));
+        data.set(D_CO2_X100, scale(atmosphere.co2Percent(), 100.0D));
+        data.set(D_AIR_QUALITY_X10, scale(atmosphere.airQualityPercent(), 10.0D));
+    }
+
+    private static RoomAtmosphere atmosphere(ServerLevel level, RoomScanResult scan) {
+        boolean wasteland = RoomEnvironmentManager.isWasteland(level, scan.anchor());
+        return RoomAtmosphereSavedData.get(level).getOrCreate(scan.anchor().asLong(), scan.volume(),
+                RoomEnvironmentManager.outsideDust(wasteland), RoomEnvironmentManager.outsideAirborneRadiation(wasteland), level.getGameTime());
+    }
+
+    private static int powerSource(ServerLevel level, BlockPos pos, dev.afterfall.machine.MachineEnergyStorage storage) {
+        String source = MachinePower.source(level, pos, storage);
+        if ("FE".equals(source)) return 1;
+        if (source.startsWith("REDSTONE")) return 2;
+        return 0;
+    }
+
+    private static int scale(double value, double multiplier) {
+        return (int) Math.round(Math.max(0.0D, Math.min(2_000_000.0D, value * multiplier)));
+    }
+
+    public BlockPos blockPos() { return blockPos; }
+    public int machineType() { return machineType; }
+    public int machineSlotCount() { return machineSlotCount; }
+    public int get(int index) { return data.get(index); }
+    public boolean enabled() { return get(D_ENABLED) != 0; }
+    public double prePercent() { return get(D_PRE) / 10.0D; }
+    public double hepaPercent() { return get(D_HEPA) / 10.0D; }
+    public double radPercent() { return get(D_RAD) / 10.0D; }
+    public double dustPercent() { return get(D_DUST_X100) / 100.0D; }
+    public double airRadiation() { return get(D_AIR_RAD_X100) / 100.0D; }
+    public double oxygenPercent() { return get(D_O2_X100) / 100.0D; }
+    public double co2Percent() { return get(D_CO2_X100) / 100.0D; }
+    public double airQuality() { return get(D_AIR_QUALITY_X10) / 10.0D; }
+    public double flow() { return get(D_FLOW_X10) / 10.0D; }
+    public int returnVentCount() { return get(D_RETURN_VENTS); }
+    public double supplyFlow() { return get(D_SUPPLY_FLOW_X10) / 10.0D; }
+    public double returnFlow() { return get(D_RETURN_FLOW_X10) / 10.0D; }
+    public int intakeTotal() { return get(D_INTAKE_TOTAL); }
+    public int intakeReady() { return get(D_INTAKE_READY); }
+    public double intakeInput() { return get(D_INTAKE_INPUT_X10) / 10.0D; }
+    public double intakeCapacity() { return get(D_INTAKE_CAPACITY_X10) / 10.0D; }
+    public double intakeDemand() { return get(D_INTAKE_DEMAND_X10) / 10.0D; }
+    public int inputRoomVolume() { return get(D_INPUT_ROOM_VOLUME); }
+    public double inputDustPercent() { return get(D_INPUT_DUST_X100) / 100.0D; }
+    public double inputAirRadiation() { return get(D_INPUT_AIR_RAD_X100) / 100.0D; }
+    public int industrialPreBlocks() { return get(D_IND_PRE); }
+    public int industrialHepaBlocks() { return get(D_IND_HEPA); }
+    public int industrialRadBlocks() { return get(D_IND_RAD); }
+    public double industrialCapacity() { return get(D_IND_CAPACITY_X10) / 10.0D; }
+    public int transferVentCount() { return get(D_TRANSFER_VENTS); }
+    public double transferCapacity() { return get(D_TRANSFER_CAPACITY_X10) / 10.0D; }
+    public int intakeMode() { return get(D_INTAKE_MODE); }
+    public int falloutCondition() { return get(D_FALLOUT_CONDITION); }
+    public int falloutLoadPercent() { return get(D_FALLOUT_LOAD_PERCENT); }
+    public double outsideDustPercent() { return get(D_OUTSIDE_DUST_X100) / 100.0D; }
+    public double outsideRadiation() { return get(D_OUTSIDE_RAD_X100) / 100.0D; }
+    public boolean intakeAutoIsolated() { return get(D_INTAKE_AUTO_ISOLATED) != 0; }
+    public double intakeUnitFlow() { return get(D_INTAKE_UNIT_FLOW_X10) / 10.0D; }
+    public int intakeAutoThresholdPercent() { return get(D_INTAKE_AUTO_THRESHOLD_PERCENT); }
+    public double scrubberInputCo2() { return get(D_SCRUBBER_INPUT_CO2_X1000) / 1000.0D; }
+    public double scrubberOutputCo2() { return get(D_SCRUBBER_OUTPUT_CO2_X1000) / 1000.0D; }
+    public double scrubberActualEq() { return get(D_SCRUBBER_ACTUAL_EQ_X100) / 100.0D; }
+    public double scrubberRemovalPerMinute() { return get(D_SCRUBBER_REMOVAL_PER_MIN_X100000) / 100000.0D; }
+    public int scrubberEnergyUse() { return get(D_SCRUBBER_ENERGY_USE); }
+    public double scrubberActualFlow() { return get(D_SCRUBBER_ACTUAL_FLOW_X10) / 10.0D; }
+    public double scrubberNominalEq() { return get(D_SCRUBBER_NOMINAL_EQ_X100) / 100.0D; }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return player.distanceToSqr(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D) <= 64.0D;
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        Slot slot = getSlot(index);
+        if (!slot.hasItem()) return ItemStack.EMPTY;
+        ItemStack stack = slot.getItem();
+        ItemStack original = stack.copy();
+        int playerStart = machineSlotCount;
+        int playerEnd = playerStart + 36;
+
+        if (index < machineSlotCount) {
+            if (!moveItemStackTo(stack, playerStart, playerEnd, true)) return ItemStack.EMPTY;
+        } else {
+            boolean movedToMachine = false;
+            if (machineType == TYPE_GENERATOR && EmergencyGeneratorBlockEntity.isFuel(stack)) {
+                movedToMachine = moveItemStackTo(stack, 0, 1, false);
+            } else if (machineType == TYPE_FILTER || machineType == TYPE_AIRLOCK) {
+                int target = FilterBank.slotFor(stack);
+                if (target >= 0) movedToMachine = moveItemStackTo(stack, target, target + 1, false);
+            }
+            if (!movedToMachine) {
+                int mainEnd = playerStart + 27;
+                if (index < mainEnd) {
+                    if (!moveItemStackTo(stack, mainEnd, playerEnd, false)) return ItemStack.EMPTY;
+                } else {
+                    if (!moveItemStackTo(stack, playerStart, mainEnd, false)) return ItemStack.EMPTY;
+                }
+            }
+        }
+
+        if (stack.isEmpty()) slot.set(ItemStack.EMPTY); else slot.setChanged();
+        if (stack.getCount() == original.getCount()) return ItemStack.EMPTY;
+        slot.onTake(player, stack);
+        return original;
+    }
+}
