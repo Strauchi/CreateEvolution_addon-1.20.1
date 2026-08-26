@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": {"model": "afterfall:block/sealed_power_feedthrough"},
+    "facing=east":  {"model": "afterfall:block/sealed_power_feedthrough", "y": 90},
+    "facing=south": {"model": "afterfall:block/sealed_power_feedthrough", "y": 180},
+    "facing=west":  {"model": "afterfall:block/sealed_power_feedthrough", "y": 270},
+    "facing=up":    {"model": "afterfall:block/sealed_power_feedthrough", "x": 270},
+    "facing=down":  {"model": "afterfall:block/sealed_power_feedthrough", "x": 90}
+  }
+}
