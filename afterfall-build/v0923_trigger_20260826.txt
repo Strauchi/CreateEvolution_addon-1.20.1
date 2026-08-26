@@ -1,0 +1,1 @@
+Afterfall 0.9.2.3 QoL: sneak-right-click bypasses GUI machines for block/pipe placement.
