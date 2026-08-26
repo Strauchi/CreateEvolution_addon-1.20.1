@@ -1,0 +1,2 @@
+Trigger Afterfall 0.8.4.1 life-support diagnostics and color UI build.
+Base snapshot: afterfall-build/snapshot-v084/
