@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:block",
+  "pools": [{
+    "rolls": 1,
+    "entries": [{"type": "minecraft:item", "name": "afterfall:power_control_panel"}],
+    "conditions": [{"condition": "minecraft:survives_explosion"}]
+  }]
+}

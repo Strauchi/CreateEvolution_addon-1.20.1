@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": {"model": "afterfall:block/smart_power_tap"},
+    "facing=east":  {"model": "afterfall:block/smart_power_tap", "y": 90},
+    "facing=south": {"model": "afterfall:block/smart_power_tap", "y": 180},
+    "facing=west":  {"model": "afterfall:block/smart_power_tap", "y": 270},
+    "facing=up":    {"model": "afterfall:block/smart_power_tap", "x": 270},
+    "facing=down":  {"model": "afterfall:block/smart_power_tap", "x": 90}
+  }
+}
