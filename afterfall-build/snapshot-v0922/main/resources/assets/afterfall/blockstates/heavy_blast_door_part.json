@@ -1,0 +1,20 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "afterfall:block/heavy_blast_door_left"
+      }
+    },
+    {
+      "when": {
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "afterfall:block/heavy_blast_door_right"
+      }
+    }
+  ]
+}
