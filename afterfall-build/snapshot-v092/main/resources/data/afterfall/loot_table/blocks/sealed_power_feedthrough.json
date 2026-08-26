@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:block",
+  "pools": [{
+    "rolls": 1,
+    "entries": [{"type": "minecraft:item", "name": "afterfall:sealed_power_feedthrough"}],
+    "conditions": [{"condition": "minecraft:survives_explosion"}]
+  }]
+}

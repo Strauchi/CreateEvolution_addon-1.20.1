@@ -1,0 +1,101 @@
+Applied Afterfall 0.9.2 Smart Power Distribution
+mod_version=0.9.2
+
+Welcome to Gradle 9.2.1!
+
+Here are the highlights of this release:
+ - Windows ARM support
+ - Improved publishing APIs
+ - Better guidance for dependency verification failures
+
+For more details see https://docs.gradle.org/9.2.1/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+Calculating task graph as no cached configuration is available for tasks: build
+
+> Configure project :
+Creating Minecraft artifacts without recompilation.
+
+> Task :processTestResources NO-SOURCE
+> Task :jarJar NO-SOURCE
+> Task :generateModMetadata
+> Task :processResources
+
+> Task :createMinecraftArtifacts
+Loaded 131 artifacts from /home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
+[1m*** Started working on [4mdownloadJson[0m[0m
+  ↓ https://launchermeta.mojang.com/mc/game/version_manifest_v2.json
+  ↓ https://piston-meta.mojang.com/v1/packages/7d538f57bd7f3d0638755fa605a432494e736db3/1.21.1.json
+ [1m[92m✓[0m Completed [4mdownloadJson[0m in 0.45s
+[1m*** Started working on [4mdownloadClientMappings[0m[0m
+[1m*** Started working on [4mdownloadServer[0m[0m
+[1m*** Started working on [4mdownloadClient[0m[0m
+  ↓ https://piston-data.mojang.com/v1/objects/59353fb40c36d304f2035d51e7d6e6baa98dc05c/server.jar
+  ↓ https://piston-data.mojang.com/v1/objects/30c73b1c5da787909b2f73340419fdf13b9def88/client.jar
+  ↓ https://piston-data.mojang.com/v1/objects/2244b6f072256667bcd9a73df124d6c58de77992/client.txt
+ [1m[92m✓[0m Completed [4mdownloadClientMappings[0m in 0.50s
+[1m*** Started working on [4mmergeMappings[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ [1m[92m✓[0m Completed [4mdownloadClient[0m in 0.98s
+[1m*** Started working on [4mstripClient[0m[0m
+ [1m[92m✓[0m Completed [4mdownloadServer[0m in 1.49s
+[1m*** Started working on [4mextractServer[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ [1m[92m✓[0m Completed [4mextractServer[0m in 0.81s
+[1m*** Started working on [4mstripServer[0m[0m
+ [1m[92m✓[0m Completed [4mmergeMappings[0m in 4.21s
+ [1m[92m✓[0m Completed [4mstripServer[0m in 2.80s
+ [1m[92m✓[0m Completed [4mstripClient[0m in 4.45s
+[1m*** Started working on [4mmerge[0m[0m
+ ↳ Running external tool net.neoforged:mergetool:2.0.3:fatjar
+ [1m[92m✓[0m Completed [4mmerge[0m in 3.72s
+[1m*** Started working on [4mrename[0m[0m
+ ↳ Running external tool net.neoforged:AutoRenamingTool:2.0.3:all
+ [1m[92m✓[0m Completed [4mrename[0m in 6.58s
+[1m*** Started working on [4mbinaryPatch[0m[0m
+  [33mWARNING: [0mnet.neoforged.installertools:binarypatcher:2.1.2:fatjar is not present in the artifact manifest
+  ↓ https://maven.neoforged.net/releases/net/neoforged/installertools/binarypatcher/2.1.2/binarypatcher-2.1.2-fatjar.jar
+ ↳ Running external tool net.neoforged.installertools:binarypatcher:2.1.2:fatjar
+ [1m[92m✓[0m Completed [4mbinaryPatch[0m in 6.61s
+[1m*** Started working on [4mcopyUnpatchedClasses[0m[0m
+ [1m[92m✓[0m Completed [4mcopyUnpatchedClasses[0m in 1.98s
+[1m*** Started working on [4mapplyDevTransforms[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:4.0.12:fatjar
+ [1m[92m✓[0m Completed [4mapplyDevTransforms[0m in 2.39s
+[1m*** Started working on [4mbinaryWithNeoForge[0m[0m
+ [1m[92m✓[0m Completed [4mbinaryWithNeoForge[0m in 5.61s
+Total runtime: 33.82s
+
+
+> Task :compileJava
+/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/src/main/java/dev/afterfall/client/ClientModEvents.java:12: warning: [removal] bus() in EventBusSubscriber has been deprecated and marked for removal
+@EventBusSubscriber(modid = Afterfall.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                              ^
+/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/src/main/java/dev/afterfall/client/ClientModEvents.java:12: warning: [removal] Bus in EventBusSubscriber has been deprecated and marked for removal
+@EventBusSubscriber(modid = Afterfall.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                                                      ^
+/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/src/main/java/dev/afterfall/network/PowerNetworking.java:29: warning: [removal] bus() in EventBusSubscriber has been deprecated and marked for removal
+@EventBusSubscriber(modid = Afterfall.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+                                              ^
+/home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/src/main/java/dev/afterfall/network/PowerNetworking.java:29: warning: [removal] Bus in EventBusSubscriber has been deprecated and marked for removal
+@EventBusSubscriber(modid = Afterfall.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+                                                                      ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+4 warnings
+
+> Task :classes
+> Task :compileTestJava NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :check UP-TO-DATE
+> Task :jar
+> Task :assemble
+> Task :build
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1787753775368.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/CreateEvolution_addon-1.20.1/CreateEvolution_addon-1.20.1/Afterfall/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1m 17s
+5 actionable tasks: 5 executed
+Configuration cache entry stored.
